@@ -10,18 +10,17 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   // Key untuk validasi form
-  final _formKey = GlobalKey<FormState>();
+  final formKey = GlobalKey<FormState>();
 
   // Controller untuk input email dan password
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
   // Status loading ketika tombol login ditekan
-  bool _isLoading = false;
+  bool isLoading = false;
 
   @override
   void dispose() {
-    // Membersihkan controller agar tidak boros memori
     emailController.dispose();
     passwordController.dispose();
     super.dispose();
@@ -30,14 +29,14 @@ class _LoginPageState extends State<LoginPage> {
   // Fungsi login (simulasi)
   Future<void> _submitLogin() async {
     // Cek apakah form valid
-    if (!_formKey.currentState!.validate()) return;
+    if (!formKey.currentState!.validate()) return;
 
-    setState(() => _isLoading = true);
+    setState(() => isLoading = true);
 
     // Simulasi proses login (misalnya request API)
     await Future.delayed(const Duration(seconds: 1));
 
-    setState(() => _isLoading = false);
+    setState(() => isLoading = false);
 
     // Menampilkan pesan berhasil
     ScaffoldMessenger.of(context).showSnackBar(
@@ -66,7 +65,7 @@ class _LoginPageState extends State<LoginPage> {
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 500),
             child: Form(
-              key: _formKey,
+              key: formKey,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -121,14 +120,18 @@ class _LoginPageState extends State<LoginPage> {
 
                   // Tombol Login
                   ElevatedButton(
-                    onPressed: _isLoading ? null : _submitLogin,
-                    child: _isLoading
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.lightGreen,
+                      foregroundColor: Colors.white,
+                    ),
+                    onPressed: isLoading ? null : _submitLogin,
+                    child: isLoading
                         ? const SizedBox(
                             width: 18,
                             height: 18,
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
-                              color: Colors.white,
+                              color: Color.fromARGB(255, 0, 0, 0),
                             ),
                           )
                         : const Text('Masuk'),
@@ -136,7 +139,7 @@ class _LoginPageState extends State<LoginPage> {
 
                   const SizedBox(height: 8),
 
-                  // Tombol Daftar
+                  // Tombol Registrasi
                   TextButton(
                     onPressed: () {
                       Navigator.of(context).push(
