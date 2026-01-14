@@ -39,6 +39,7 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('SeHati'),
+        backgroundColor: Colors.green, // Mengatur warna AppBar menjadi hijau
       ),
       body: _widgetOptions.elementAt(_selectedIndex),
       bottomNavigationBar: BottomNavigationBar(
@@ -57,6 +58,9 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
         currentIndex: _selectedIndex,
+        selectedItemColor: Colors.green, // Mengatur warna ikon dan teks yang dipilih menjadi hijau
+        unselectedItemColor: Colors.grey, // Mengatur warna ikon dan teks yang tidak dipilih menjadi abu-abu
+        type: BottomNavigationBarType.fixed, // Menampilkan label meskipun tidak dipilih
         onTap: _onItemTapped,
       ),
     );

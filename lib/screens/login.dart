@@ -59,6 +59,7 @@ class _LoginPageState extends State<LoginPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Masuk'),
+        backgroundColor: Colors.green, // Mengatur warna AppBar menjadi hijau
       ),
       body: Center(
         child: SingleChildScrollView(
@@ -122,7 +123,7 @@ class _LoginPageState extends State<LoginPage> {
                   // Tombol Login
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.lightGreen,
+                      backgroundColor: Colors.green, // Mengatur warna tombol login menjadi hijau
                       foregroundColor: Colors.white,
                     ),
                     onPressed: isLoading ? null : _submitLogin,
@@ -132,7 +133,7 @@ class _LoginPageState extends State<LoginPage> {
                             height: 18,
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
-                              color: Color.fromARGB(255, 0, 0, 0),
+                              color: Colors.white, // Mengatur warna loading indicator menjadi putih
                             ),
                           )
                         : const Text('Masuk'),
@@ -142,6 +143,9 @@ class _LoginPageState extends State<LoginPage> {
 
                   // Tombol Registrasi
                   TextButton(
+                    style: TextButton.styleFrom(
+                      foregroundColor: Colors.green, // Mengatur warna teks tombol daftar menjadi hijau
+                    ),
                     onPressed: () {
                       Navigator.of(context).push(
                         MaterialPageRoute(builder: (_) => const RegisterPage()),
