@@ -11,14 +11,12 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  // Key untuk validasi form
   final formKey = GlobalKey<FormState>();
 
-  // Instansiasi controller
   late LoginController _loginController;
 
-  // Status loading ketika tombol login ditekan
   bool isLoading = false;
+  bool _obscurePassword = true;
 
   @override
   void initState() {
@@ -32,7 +30,7 @@ class _LoginPageState extends State<LoginPage> {
     super.dispose();
   }
 
-  // Fungsi login dan validasi
+  //login dan validasi
   Future<void> _submitLogin() 
   async {
     if (!formKey.currentState!.validate()) 
@@ -108,11 +106,21 @@ class _LoginPageState extends State<LoginPage> {
 
                     TextFormField(
                       controller: _loginController.passwordController,
-                      obscureText: true,
-                      decoration: const InputDecoration(
+                      obscureText: _obscurePassword,
+                      decoration: InputDecoration(
                         labelText: 'Kata sandi',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.lock),
+                        border: const OutlineInputBorder(),
+                        prefixIcon: const Icon(Icons.lock),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _obscurePassword = !_obscurePassword;
+                            });
+                          },
+                        ),
                         filled: true,
                         fillColor: Colors.white,
                       ),
