@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({Key? key}) : super(key: key);
@@ -12,9 +13,9 @@ class _ProfilePageState extends State<ProfilePage> {
   final TextEditingController nikController = TextEditingController();
   final TextEditingController nameController = TextEditingController();
   final TextEditingController addressController = TextEditingController();
-  final TextEditingController dobController = TextEditingController(); // Date of Birth
+  final TextEditingController dobController = TextEditingController();
 
-  String? _gender; // 'Laki-laki' or 'Perempuan'
+  String? _gender;
   DateTime? _selectedDate;
 
   Future<void> _selectDate(BuildContext context) async {
@@ -23,12 +24,12 @@ class _ProfilePageState extends State<ProfilePage> {
       initialDate: _selectedDate ?? DateTime.now(),
       firstDate: DateTime(1900),
       lastDate: DateTime.now(),
-      builder: (BuildContext context, Widget? child) {
+      builder: (context, child) {
         return Theme(
           data: ThemeData.light().copyWith(
-            primaryColor: Colors.green, // Header background color
-            colorScheme: const ColorScheme.light(primary: Colors.green), // Selected day color
-            buttonTheme: const ButtonThemeData(textTheme: ButtonTextTheme.primary),
+            colorScheme: const ColorScheme.light(
+              primary: Colors.green,
+            ),
           ),
           child: child!,
         );
@@ -37,9 +38,38 @@ class _ProfilePageState extends State<ProfilePage> {
     if (picked != null && picked != _selectedDate) {
       setState(() {
         _selectedDate = picked;
-        dobController.text = "${picked.day}/${picked.month}/${picked.year}";
+        dobController.text = DateFormat('dd MMMM yyyy').format(picked);
       });
     }
+  }
+
+  void _saveProfile() {
+    // First, validate the form.
+    final bool isFormValid = _formKey.currentState?.validate() ?? false;
+    // Also check if gender is selected.
+    if (!isFormValid || _gender == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Harap lengkapi semua data.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+    
+    // If valid, show success and print data.
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Profil berhasil disimpan!'),
+        backgroundColor: Colors.green,
+      ),
+    );
+    
+    print('NIK: ${nikController.text}');
+    print('Nama: ${nameController.text}');
+    print('Jenis Kelamin: $_gender');
+    print('Tanggal Lahir: ${dobController.text}');
+    print('Alamat: ${addressController.text}');
   }
 
   @override
@@ -51,27 +81,15 @@ class _ProfilePageState extends State<ProfilePage> {
     super.dispose();
   }
 
-  void _saveProfile() {
-    if (_formKey.currentState!.validate()) {
-      // Process data
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Profil berhasil disimpan!')),
-      );
-      // Here you would typically send data to a backend or save locally
-      print('NIK: ${nikController.text}');
-      print('Nama: ${nameController.text}');
-      print('Jenis Kelamin: $_gender');
-      print('Tanggal Lahir: ${_selectedDate?.toIso8601String()}');
-      print('Alamat: ${addressController.text}');
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey[100], // A light grey background
       appBar: AppBar(
-        title: const Text('Profil Saya'),
-        backgroundColor: Colors.green, // Green AppBar
+        title: const Text('Profil Saya', style: TextStyle(color: Colors.black)),
+        backgroundColor: Colors.white,
+        elevation: 1.0, // A subtle shadow
+        iconTheme: const IconThemeData(color: Colors.black),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -79,16 +97,27 @@ class _ProfilePageState extends State<ProfilePage> {
           key: _formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
+            children: <Widget>[
+              // Profile picture section
               Center(
-                child: CircleAvatar(
-                  radius: 50,
-                  backgroundColor: Colors.green.shade100,
-                  child: Icon(
-                    Icons.person,
-                    size: 60,
-                    color: Colors.green.shade800,
-                  ),
+                child: Column(
+                  children: [
+                    CircleAvatar(
+                      radius: 50,
+                      backgroundColor: Colors.green.shade100,
+                      child: Icon(
+                        Icons.person,
+                        size: 60,
+                        color: Colors.green.shade800,
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        // TODO: Implement image picker
+                      },
+                      child: const Text('Ganti Foto', style: TextStyle(color: Colors.green)),
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(height: 24),
@@ -97,10 +126,12 @@ class _ProfilePageState extends State<ProfilePage> {
               TextFormField(
                 controller: nikController,
                 keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'NIK',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.credit_card),
+                  prefixIcon: const Icon(Icons.credit_card),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.0)),
+                  filled: true,
+                  fillColor: Colors.white,
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -114,10 +145,12 @@ class _ProfilePageState extends State<ProfilePage> {
               // Nama
               TextFormField(
                 controller: nameController,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'Nama Lengkap',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.person),
+                  prefixIcon: const Icon(Icons.person),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.0)),
+                  filled: true,
+                  fillColor: Colors.white,
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -128,39 +161,30 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
               const SizedBox(height: 16),
 
-              // Jenis Kelamin
-              InputDecorator(
+              // Jenis Kelamin using DropdownButtonFormField
+              DropdownButtonFormField<String>(
+                value: _gender,
                 decoration: InputDecoration(
                   labelText: 'Jenis Kelamin',
-                  border: const OutlineInputBorder(),
-                  prefixIcon: Icon(_gender == 'Laki-laki' ? Icons.male : (_gender == 'Perempuan' ? Icons.female : Icons.transgender)),
+                  prefixIcon: const Icon(Icons.wc),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.0)),
+                  filled: true,
+                  fillColor: Colors.white,
                 ),
-                child: Column(
-                  children: [
-                    RadioListTile<String>(
-                      title: const Text('Laki-laki'),
-                      value: 'Laki-laki',
-                      groupValue: _gender,
-                      onChanged: (String? value) {
-                        setState(() {
-                          _gender = value;
-                        });
-                      },
-                      activeColor: Colors.green,
-                    ),
-                    RadioListTile<String>(
-                      title: const Text('Perempuan'),
-                      value: 'Perempuan',
-                      groupValue: _gender,
-                      onChanged: (String? value) {
-                        setState(() {
-                          _gender = value;
-                        });
-                      },
-                      activeColor: Colors.green,
-                    ),
-                  ],
-                ),
+                hint: const Text('Pilih Jenis Kelamin'),
+                items: <String>['Laki-laki', 'Perempuan']
+                    .map<DropdownMenuItem<String>>((String value) {
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(value),
+                  );
+                }).toList(),
+                onChanged: (String? newValue) {
+                  setState(() {
+                    _gender = newValue;
+                  });
+                },
+                validator: (value) => value == null ? 'Jenis kelamin wajib dipilih' : null,
               ),
               const SizedBox(height: 16),
 
@@ -169,10 +193,12 @@ class _ProfilePageState extends State<ProfilePage> {
                 controller: dobController,
                 readOnly: true,
                 onTap: () => _selectDate(context),
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'Tanggal Lahir',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.calendar_today),
+                  prefixIcon: const Icon(Icons.calendar_today),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.0)),
+                  filled: true,
+                  fillColor: Colors.white,
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -187,11 +213,12 @@ class _ProfilePageState extends State<ProfilePage> {
               TextFormField(
                 controller: addressController,
                 maxLines: 3,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'Alamat',
-                  border: OutlineInputBorder(),
-                  alignLabelWithHint: true,
-                  prefixIcon: Icon(Icons.home),
+                  prefixIcon: const Icon(Icons.home),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.0)),
+                  filled: true,
+                  fillColor: Colors.white,
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -202,16 +229,20 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
               const SizedBox(height: 24),
 
+              // Save Button
               ElevatedButton(
                 onPressed: _saveProfile,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.green, // Green button
                   foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8.0),
+                  ),
                 ),
                 child: const Text(
                   'Simpan Profil',
-                  style: TextStyle(fontSize: 18),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
               ),
             ],
