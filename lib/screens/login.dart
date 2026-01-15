@@ -63,86 +63,97 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Masuk'),
-        backgroundColor: Colors.green, // Mengatur warna AppBar menjadi hijau
-      ),
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 500),
-            child: Form(
-              key: formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const SizedBox(height: 24),
-                  const FlutterLogo(size: 96),
-                  const SizedBox(height: 24),
-
-                  // Input Email
-                  TextFormField(
-                    controller: _loginController.emailController,
-                    keyboardType: TextInputType.emailAddress,
-                    decoration: const InputDecoration(
-                      labelText: 'Email',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.email),
+      
+      body: Container(
+        color: Colors.green[100],
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 500),
+              child: Form(
+                key: formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const SizedBox(height: 24),
+                    const Center(
+                      child: Text(
+                        'SeHati Apps',
+                        style: TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                          color: Color.fromARGB(255, 73, 174, 77),
+                        ),
+                      ),
                     ),
-                    validator: _loginController.validateEmail,
-                  ),
+                    const SizedBox(height: 24),
+                    const FlutterLogo(size: 96),
+                    const SizedBox(height: 24),
 
-                  const SizedBox(height: 12),
-
-                  // Input Password
-                  TextFormField(
-                    controller: _loginController.passwordController,
-                    obscureText: true,
-                    decoration: const InputDecoration(
-                      labelText: 'Kata sandi',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.lock),
+                    TextFormField(
+                      controller: _loginController.emailController,
+                      keyboardType: TextInputType.emailAddress,
+                      decoration: const InputDecoration(
+                        labelText: 'Email',
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.email),
+                        filled: true,
+                        fillColor: Colors.white,
+                      ),
+                      validator: _loginController.validateEmail,
                     ),
-                    validator: _loginController.validatePassword,
-                  ),
 
-                  const SizedBox(height: 16),
+                    const SizedBox(height: 12),
 
-                  // Tombol Login
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green, // Mengatur warna tombol login menjadi hijau
-                      foregroundColor: Colors.white,
+                    TextFormField(
+                      controller: _loginController.passwordController,
+                      obscureText: true,
+                      decoration: const InputDecoration(
+                        labelText: 'Kata sandi',
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.lock),
+                        filled: true,
+                        fillColor: Colors.white,
+                      ),
+                      validator: _loginController.validatePassword,
                     ),
-                    onPressed: isLoading ? null : _submitLogin,
-                    child: isLoading
-                        ? const SizedBox(
-                            width: 18,
-                            height: 18,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white, // Mengatur warna loading indicator menjadi putih
-                            ),
-                          )
-                        : const Text('Masuk'),
-                  ),
 
-                  const SizedBox(height: 8),
+                    const SizedBox(height: 16),
 
-                  // Tombol Registrasi
-                  TextButton(
-                    style: TextButton.styleFrom(
-                      foregroundColor: Colors.green, // Mengatur warna teks tombol daftar menjadi hijau
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green[800],
+                        foregroundColor: Colors.white,
+                      ),
+                      onPressed: isLoading ? null : _submitLogin,
+                      child: isLoading
+                          ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : const Text('Masuk'),
                     ),
-                    onPressed: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => const RegisterPage()),
-                      );
-                    },
-                    child: const Text('Belum punya akun? Daftar'),
-                  ),
-                ],
+
+                    const SizedBox(height: 8),
+
+                    TextButton(
+                      style: TextButton.styleFrom(
+                        foregroundColor: Colors.green,
+                      ),
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(builder: (_) => const RegisterPage()),
+                        );
+                      },
+                      child: const Text('Belum punya akun? Daftar'),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
