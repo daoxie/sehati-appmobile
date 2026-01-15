@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import '/controllers/profile_controller.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({Key? key}) : super(key: key);
@@ -10,44 +10,19 @@ class ProfilePage extends StatefulWidget {
 
 class _ProfilePageState extends State<ProfilePage> {
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController nikController = TextEditingController();
-  final TextEditingController nameController = TextEditingController();
-  final TextEditingController addressController = TextEditingController();
-  final TextEditingController dobController = TextEditingController();
+  late ProfileController _profileController;
 
-  String? _gender;
-  DateTime? _selectedDate;
-
-  Future<void> _selectDate(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: _selectedDate ?? DateTime.now(),
-      firstDate: DateTime(1900),
-      lastDate: DateTime.now(),
-      builder: (context, child) {
-        return Theme(
-          data: ThemeData.light().copyWith(
-            colorScheme: const ColorScheme.light(
-              primary: Colors.green,
-            ),
-          ),
-          child: child!,
-        );
-      },
-    );
-    if (picked != null && picked != _selectedDate) {
-      setState(() {
-        _selectedDate = picked;
-        dobController.text = DateFormat('dd MMMM yyyy').format(picked);
-      });
-    }
+  @override
+  void initState() {
+    super.initState();
+    _profileController = ProfileController();
   }
 
   void _saveProfile() {
     // First, validate the form.
     final bool isFormValid = _formKey.currentState?.validate() ?? false;
-    // Also check if gender is selected.
-    if (!isFormValid || _gender == null) {
+    
+    if (!isFormValid || _profileController.gender == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Harap lengkapi semua data.'),
@@ -57,27 +32,20 @@ class _ProfilePageState extends State<ProfilePage> {
       return;
     }
     
-    // If valid, show success and print data.
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Profil berhasil disimpan!'),
-        backgroundColor: Colors.green,
-      ),
-    );
-    
-    print('NIK: ${nikController.text}');
-    print('Nama: ${nameController.text}');
-    print('Jenis Kelamin: $_gender');
-    print('Tanggal Lahir: ${dobController.text}');
-    print('Alamat: ${addressController.text}');
+    // If valid, save profile and show success.
+    if (_profileController.saveProfile()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Profil berhasil disimpan!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    }
   }
 
   @override
   void dispose() {
-    nikController.dispose();
-    nameController.dispose();
-    addressController.dispose();
-    dobController.dispose();
+    _profileController.dispose();
     super.dispose();
   }
 
@@ -124,7 +92,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
               // NIK
               TextFormField(
-                controller: nikController,
+                controller: _profileController.nikController,
                 keyboardType: TextInputType.number,
                 decoration: InputDecoration(
                   labelText: 'NIK',
@@ -133,18 +101,13 @@ class _ProfilePageState extends State<ProfilePage> {
                   filled: true,
                   fillColor: Colors.white,
                 ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'NIK wajib diisi';
-                  }
-                  return null;
-                },
+                validator: _profileController.validateNIK,
               ),
               const SizedBox(height: 16),
 
               // Nama
               TextFormField(
-                controller: nameController,
+                controller: _profileController.nameController,
                 decoration: InputDecoration(
                   labelText: 'Nama Lengkap',
                   prefixIcon: const Icon(Icons.person),
@@ -152,18 +115,13 @@ class _ProfilePageState extends State<ProfilePage> {
                   filled: true,
                   fillColor: Colors.white,
                 ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Nama wajib diisi';
-                  }
-                  return null;
-                },
+                validator: _profileController.validateName,
               ),
               const SizedBox(height: 16),
 
               // Jenis Kelamin using DropdownButtonFormField
               DropdownButtonFormField<String>(
-                value: _gender,
+                value: _profileController.gender,
                 decoration: InputDecoration(
                   labelText: 'Jenis Kelamin',
                   prefixIcon: const Icon(Icons.wc),
@@ -181,18 +139,18 @@ class _ProfilePageState extends State<ProfilePage> {
                 }).toList(),
                 onChanged: (String? newValue) {
                   setState(() {
-                    _gender = newValue;
+                    _profileController.gender = newValue;
                   });
                 },
-                validator: (value) => value == null ? 'Jenis kelamin wajib dipilih' : null,
+                validator: _profileController.validateGender,
               ),
               const SizedBox(height: 16),
 
               // Tanggal Lahir
               TextFormField(
-                controller: dobController,
+                controller: _profileController.dobController,
                 readOnly: true,
-                onTap: () => _selectDate(context),
+                onTap: () => _profileController.selectDate(context),
                 decoration: InputDecoration(
                   labelText: 'Tanggal Lahir',
                   prefixIcon: const Icon(Icons.calendar_today),
@@ -200,18 +158,13 @@ class _ProfilePageState extends State<ProfilePage> {
                   filled: true,
                   fillColor: Colors.white,
                 ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Tanggal lahir wajib diisi';
-                  }
-                  return null;
-                },
+                validator: _profileController.validateDOB,
               ),
               const SizedBox(height: 16),
 
               // Alamat
               TextFormField(
-                controller: addressController,
+                controller: _profileController.addressController,
                 maxLines: 3,
                 decoration: InputDecoration(
                   labelText: 'Alamat',
@@ -220,12 +173,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   filled: true,
                   fillColor: Colors.white,
                 ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Alamat wajib diisi';
-                  }
-                  return null;
-                },
+                validator: _profileController.validateAddress,
               ),
               const SizedBox(height: 24),
 
