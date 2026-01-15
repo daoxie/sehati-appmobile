@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../controllers/registerController.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({Key? key}) : super(key: key);
@@ -9,21 +10,19 @@ class RegisterPage extends StatefulWidget {
 
 class _RegisterPageState extends State<RegisterPage> {
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController nameController = TextEditingController();
-  final TextEditingController emailController = TextEditingController();
-  final TextEditingController passwordController = TextEditingController();
-  final TextEditingController confirmController = TextEditingController();
+  late RegisterController _registerController;
 
-  bool _obscurePassword = true;
-  bool _obscureConfirm = true;
   bool _isLoading = false;
 
   @override
+  void initState() {
+    super.initState();
+    _registerController = RegisterController();
+  }
+
+  @override
   void dispose() {
-    nameController.dispose();
-    emailController.dispose();
-    passwordController.dispose();
-    confirmController.dispose();
+    _registerController.dispose();
     super.dispose();
   }
 
@@ -31,7 +30,7 @@ class _RegisterPageState extends State<RegisterPage> {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
-    await Future.delayed(const Duration(seconds: 1));
+    await _registerController.submitRegister();
     setState(() => _isLoading = false);
 
     ScaffoldMessenger.of(context).showSnackBar(
@@ -61,78 +60,63 @@ class _RegisterPageState extends State<RegisterPage> {
 
                   // Nama
                   TextFormField(
-                    controller: nameController,
+                    controller: _registerController.nameController,
                     decoration: const InputDecoration(
                       labelText: 'Nama lengkap',
                       border: OutlineInputBorder(),
                       prefixIcon: Icon(Icons.person),
                     ),
-                    validator: (v) {
-                      if (v == null || v.isEmpty) return 'Nama wajib diisi';
-                      return null;
-                    },
+                    validator: _registerController.validateName,
                   ),
 
                   const SizedBox(height: 12),
 
                   // Email
                   TextFormField(
-                    controller: emailController,
+                    controller: _registerController.emailController,
                     keyboardType: TextInputType.emailAddress,
                     decoration: const InputDecoration(
                       labelText: 'Email',
                       border: OutlineInputBorder(),
                       prefixIcon: Icon(Icons.email),
                     ),
-                    validator: (v) {
-                      if (v == null || v.isEmpty) return 'Email wajib diisi';
-                      if (!RegExp(r"^[^@\s]+@[^@\s]+\.[^@\s]+$").hasMatch(v)) return 'Format email tidak valid';
-                      return null;
-                    },
+                    validator: _registerController.validateEmail,
                   ),
 
                   const SizedBox(height: 12),
 
                   // Password
                   TextFormField(
-                    controller: passwordController,
-                    obscureText: _obscurePassword,
+                    controller: _registerController.passwordController,
+                    obscureText: _registerController.obscurePassword,
                     decoration: InputDecoration(
                       labelText: 'Kata sandi',
                       border: const OutlineInputBorder(),
                       prefixIcon: const Icon(Icons.lock),
                       suffixIcon: IconButton(
-                        icon: Icon(_obscurePassword ? Icons.visibility : Icons.visibility_off),
-                        onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                        icon: Icon(_registerController.obscurePassword ? Icons.visibility : Icons.visibility_off),
+                        onPressed: () => setState(() => _registerController.obscurePassword = !_registerController.obscurePassword),
                       ),
                     ),
-                    validator: (v) {
-                      if (v == null || v.isEmpty) return 'Kata sandi wajib diisi';
-                      if (v.length < 6) return 'Minimal 6 karakter';
-                      return null;
-                    },
+                    validator: _registerController.validatePassword,
                   ),
 
                   const SizedBox(height: 12),
 
                   // Konfirmasi Password
                   TextFormField(
-                    controller: confirmController,
-                    obscureText: _obscureConfirm,
+                    controller: _registerController.confirmController,
+                    obscureText: _registerController.obscureConfirm,
                     decoration: InputDecoration(
                       labelText: 'Konfirmasi kata sandi',
                       border: const OutlineInputBorder(),
                       prefixIcon: const Icon(Icons.lock),
                       suffixIcon: IconButton(
-                        icon: Icon(_obscureConfirm ? Icons.visibility : Icons.visibility_off),
-                        onPressed: () => setState(() => _obscureConfirm = !_obscureConfirm),
+                        icon: Icon(_registerController.obscureConfirm ? Icons.visibility : Icons.visibility_off),
+                        onPressed: () => setState(() => _registerController.obscureConfirm = !_registerController.obscureConfirm),
                       ),
                     ),
-                    validator: (v) {
-                      if (v == null || v.isEmpty) return 'Konfirmasi kata sandi wajib diisi';
-                      if (v != passwordController.text) return 'Konfirmasi tidak cocok';
-                      return null;
-                    },
+                    validator: _registerController.validateConfirmPassword,
                   ),
 
                   const SizedBox(height: 16),
