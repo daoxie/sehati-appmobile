@@ -43,102 +43,116 @@ class _RegisterPageState extends State<RegisterPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Daftar')),
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 500),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const SizedBox(height: 24),
-                  const FlutterLogo(size: 80),
-                  const SizedBox(height: 24),
+      appBar: AppBar(
+        title: const Text('Daftar'),
+        backgroundColor: Colors.green[800],
+      ),
+      body: Container(
+        color: Colors.green[100],
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 500),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const SizedBox(height: 24),
+                    const FlutterLogo(size: 80),
+                    const SizedBox(height: 24),
 
-                  // Nama
-                  TextFormField(
-                    controller: _registerController.nameController,
-                    decoration: const InputDecoration(
-                      labelText: 'Nama lengkap',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.person),
-                    ),
-                    validator: _registerController.validateName,
-                  ),
-
-                  const SizedBox(height: 12),
-
-                  // Email
-                  TextFormField(
-                    controller: _registerController.emailController,
-                    keyboardType: TextInputType.emailAddress,
-                    decoration: const InputDecoration(
-                      labelText: 'Email',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.email),
-                    ),
-                    validator: _registerController.validateEmail,
-                  ),
-
-                  const SizedBox(height: 12),
-
-                  // Password
-                  TextFormField(
-                    controller: _registerController.passwordController,
-                    obscureText: _registerController.obscurePassword,
-                    decoration: InputDecoration(
-                      labelText: 'Kata sandi',
-                      border: const OutlineInputBorder(),
-                      prefixIcon: const Icon(Icons.lock),
-                      suffixIcon: IconButton(
-                        icon: Icon(_registerController.obscurePassword ? Icons.visibility : Icons.visibility_off),
-                        onPressed: () => setState(() => _registerController.obscurePassword = !_registerController.obscurePassword),
+                    TextFormField(
+                      controller: _registerController.nameController,
+                      decoration: const InputDecoration(
+                        labelText: 'Nama lengkap',
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.person),
+                        filled: true,
+                        fillColor: Colors.white,
                       ),
+                      validator: _registerController.validateName,
                     ),
-                    validator: _registerController.validatePassword,
-                  ),
 
-                  const SizedBox(height: 12),
+                    const SizedBox(height: 12),
 
-                  // Konfirmasi Password
-                  TextFormField(
-                    controller: _registerController.confirmController,
-                    obscureText: _registerController.obscureConfirm,
-                    decoration: InputDecoration(
-                      labelText: 'Konfirmasi kata sandi',
-                      border: const OutlineInputBorder(),
-                      prefixIcon: const Icon(Icons.lock),
-                      suffixIcon: IconButton(
-                        icon: Icon(_registerController.obscureConfirm ? Icons.visibility : Icons.visibility_off),
-                        onPressed: () => setState(() => _registerController.obscureConfirm = !_registerController.obscureConfirm),
+                    TextFormField(
+                      controller: _registerController.emailController,
+                      keyboardType: TextInputType.emailAddress,
+                      decoration: const InputDecoration(
+                        labelText: 'Email',
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.email),
+                        filled: true,
+                        fillColor: Colors.white,
                       ),
+                      validator: _registerController.validateEmail,
                     ),
-                    validator: _registerController.validateConfirmPassword,
-                  ),
 
-                  const SizedBox(height: 16),
+                    const SizedBox(height: 12),
 
-                  ElevatedButton(
-                    onPressed: _isLoading ? null : _submit,
-                    child: _isLoading
-                        ? const SizedBox(
-                            width: 18,
-                            height: 18,
-                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                          )
-                        : const Text('Daftar'),
-                  ),
+                    TextFormField(
+                      controller: _registerController.passwordController,
+                      obscureText: _registerController.obscurePassword,
+                      decoration: InputDecoration(
+                        labelText: 'Kata sandi',
+                        border: const OutlineInputBorder(),
+                        prefixIcon: const Icon(Icons.lock),
+                        suffixIcon: IconButton(
+                          icon: Icon(_registerController.obscurePassword ? Icons.visibility : Icons.visibility_off),
+                          onPressed: () => setState(() => _registerController.obscurePassword = !_registerController.obscurePassword),
+                        ),
+                        filled: true,
+                        fillColor: Colors.white,
+                      ),
+                      validator: _registerController.validatePassword,
+                    ),
 
-                  const SizedBox(height: 8),
+                    const SizedBox(height: 12),
 
-                  TextButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    child: const Text('Sudah punya akun? Masuk'),
-                  ),
-                ],
+                    TextFormField(
+                      controller: _registerController.confirmController,
+                      obscureText: _registerController.obscureConfirm,
+                      decoration: InputDecoration(
+                        labelText: 'Konfirmasi kata sandi',
+                        border: const OutlineInputBorder(),
+                        prefixIcon: const Icon(Icons.lock),
+                        suffixIcon: IconButton(
+                          icon: Icon(_registerController.obscureConfirm ? Icons.visibility : Icons.visibility_off),
+                          onPressed: () => setState(() => _registerController.obscureConfirm = !_registerController.obscureConfirm),
+                        ),
+                        filled: true,
+                        fillColor: Colors.white,
+                      ),
+                      validator: _registerController.validateConfirmPassword,
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green[800],
+                        foregroundColor: Colors.white,
+                      ),
+                      onPressed: _isLoading ? null : _submit,
+                      child: _isLoading
+                          ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                            )
+                          : const Text('Daftar'),
+                    ),
+
+                    const SizedBox(height: 8),
+
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      child: const Text('Sudah punya akun? Masuk'),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
