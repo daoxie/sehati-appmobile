@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:sehati_appmobile/screens/profile.dart';
-import 'package:sehati_appmobile/controllers/profileController.dart';
+import 'profile.dart';
+import '../controllers/profileController.dart';
+import 'chatList.dart';
 
 class HomePage extends StatefulWidget {
   final String name;
@@ -21,18 +22,16 @@ class _HomePageState extends State<HomePage> {
     super.initState();
     _profileController = ProfileController(); // Initialize the controller
     // Initialize with dummy data for now
-    _profileController.nikController.text = "1234567890123456";
+    _profileController.nikController.text = '1234567890123456';
     _profileController.nameController.text = widget.name;
-    _profileController.dobController.text = "2000-01-01";
-    _profileController.addressController.text = "123 Main St";
-    _profileController.gender = "Laki-laki";
+    _profileController.dobController.text = '2000-01-01';
+    _profileController.addressController.text = '123 Main St';
+    _profileController.gender = 'Laki-laki';
     _widgetOptions = <Widget>[
       const Center(
         child: Text('Index 0: Matching'),
       ),
-      const Center(
-        child: Text('Index 1: Pesan'),
-      ),
+      const ChatListScreen(),
       ProfilePage(
           name: widget.name,
           controller: _profileController), // Pass the controller
@@ -86,4 +85,3 @@ class _HomePageState extends State<HomePage> {
     );
   }
 }
-
