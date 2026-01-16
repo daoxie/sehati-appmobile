@@ -17,6 +17,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
   @override
   void initState() {
     super.initState();
+    widget.controller.clearAllExceptName();
     widget.controller.onImageSelected = () {
       setState(() {}); 
     };
@@ -44,6 +45,19 @@ class _EditProfilePageState extends State<EditProfilePage> {
             children: [
               const SizedBox(height: 24),
               TextFormField(
+                controller: widget.controller.nikController,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  labelText: 'NIK',
+                  prefixIcon: const Icon(Icons.credit_card),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.0)),
+                  filled: true,
+                  fillColor: Colors.white,
+                ),
+                validator: widget.controller.validateNIK,
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
                 controller: widget.controller.nameController,
                 decoration: InputDecoration(
                   labelText: 'Name',
@@ -53,6 +67,58 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   fillColor: Colors.white,
                 ),
                 validator: widget.controller.validateName,
+              ),
+              const SizedBox(height: 16),
+              DropdownButtonFormField<String>(
+                value: widget.controller.gender,
+                decoration: InputDecoration(
+                  labelText: 'Jenis Kelamin',
+                  prefixIcon: const Icon(Icons.wc),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.0)),
+                  filled: true,
+                  fillColor: Colors.white,
+                ),
+                hint: const Text('Pilih Jenis Kelamin'),
+                items: <String>['Laki-laki', 'Perempuan']
+                    .map<DropdownMenuItem<String>>((String value) {
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(value),
+                  );
+                }).toList(),
+                onChanged: (String? newValue) {
+                  setState(() {
+                    widget.controller.gender = newValue;
+                  });
+                },
+                validator: widget.controller.validateGender,
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: widget.controller.dobController,
+                readOnly: true,
+                onTap: () => widget.controller.selectDate(context),
+                decoration: InputDecoration(
+                  labelText: 'Tanggal Lahir',
+                  prefixIcon: const Icon(Icons.calendar_today),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.0)),
+                  filled: true,
+                  fillColor: Colors.white,
+                ),
+                validator: widget.controller.validateDOB,
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: widget.controller.addressController,
+                maxLines: 3,
+                decoration: InputDecoration(
+                  labelText: 'Alamat',
+                  prefixIcon: const Icon(Icons.home),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.0)),
+                  filled: true,
+                  fillColor: Colors.white,
+                ),
+                validator: widget.controller.validateAddress,
               ),
               const SizedBox(height: 24),
               ElevatedButton(

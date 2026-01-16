@@ -11,12 +11,12 @@ class ProfileController {
   final TextEditingController dobController = TextEditingController();
 
   //gender dan tanggal
-  String? gender = "Laki-laki";
+  String? gender;
   DateTime? selectedDate;
-  File? imageFile; // To store the picked image
+  File? imageFile;
 
   final ImagePicker _picker = ImagePicker();
-  VoidCallback? onImageSelected; // Callback to notify UI of image change
+  VoidCallback? onImageSelected;
 
   //validasi NIK
   String? validateNIK(String? value) {
@@ -87,7 +87,7 @@ class ProfileController {
     final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
       imageFile = File(pickedFile.path);
-      onImageSelected?.call(); // Notify UI
+      onImageSelected?.call();
     }
   }
 
@@ -95,7 +95,7 @@ class ProfileController {
     final XFile? pickedFile = await _picker.pickImage(source: ImageSource.camera);
     if (pickedFile != null) {
       imageFile = File(pickedFile.path);
-      onImageSelected?.call(); // Notify UI
+      onImageSelected?.call(); 
     }
   }
 
@@ -123,12 +123,22 @@ class ProfileController {
     return true;
   }
 
+  //bersihkan semua field kecuali nama
+  void clearAllExceptName() {
+    nikController.clear();
+    addressController.clear();
+    dobController.clear();
+    gender = null;
+    selectedDate = null;
+    imageFile = null;
+  }
+
   //bersihkan resources
   void dispose() {
     nikController.dispose();
     nameController.dispose();
     addressController.dispose();
     dobController.dispose();
-    // No need to dispose ImagePicker or File
+  
   }
 }

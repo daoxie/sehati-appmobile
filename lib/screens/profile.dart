@@ -1,12 +1,18 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'editProfile.dart';
-import '../controllers/profileController.dart';
+import '/controllers/profileController.dart';
+import 'login.dart';
 
 class ProfilePage extends StatefulWidget {
   final String name;
   final ProfileController controller;
 
-  const ProfilePage({super.key, required this.name, required this.controller});
+  const ProfilePage({
+    super.key,
+    required this.name,
+    required this.controller,
+  });
 
   @override
   ProfilePageState createState() => ProfilePageState();
@@ -17,14 +23,24 @@ class ProfilePageState extends State<ProfilePage> {
   void initState() {
     super.initState();
     widget.controller.onImageSelected = () {
-      setState(() {}); // Rebuild the widget when image is selected
+      setState(() {});
     };
   }
 
   @override
   void dispose() {
-    widget.controller.onImageSelected = null; // Clear the callback
+    widget.controller.onImageSelected = null;
     super.dispose();
+  }
+
+  void _logout(BuildContext context) {
+    widget.controller.nameController.clear();
+    widget.controller.imageFile = null;
+
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const LoginPage()),
+      (route) => false,
+    );
   }
 
   @override
@@ -39,42 +55,45 @@ class ProfilePageState extends State<ProfilePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // User Image
+
               CircleAvatar(
                 radius: 60,
                 backgroundImage: widget.controller.imageFile != null
                     ? FileImage(widget.controller.imageFile!)
                     : const NetworkImage(
-                        'https://www.gravatar.com/avatar/205e460b479e2e5b48aec07710c08d50?s=200'), // Placeholder image
+                        'https://www.gravatar.com/avatar/205e460b479e2e5b48aec07710c08d50?s=200',
+                      ) as ImageProvider,
               ),
+
               const SizedBox(height: 16),
 
-              // User Name
               Text(
                 widget.controller.nameController.text.isNotEmpty
                     ? widget.controller.nameController.text
-                    : widget.name, // Use name from controller if available, else from widget
+                    : widget.name,
                 style: const TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              const SizedBox(height: 16), // Added spacing
+
+              const SizedBox(height: 16),
 
               ElevatedButton(
                 onPressed: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => EditProfilePage(controller: widget.controller),
+                      builder: (_) =>
+                          EditProfilePage(controller: widget.controller),
                     ),
                   );
                 },
                 child: const Text('Edit Profile'),
               ),
+
               const SizedBox(height: 32),
 
-              // Premium Feature Promotion Card
               Card(
                 elevation: 4,
                 shape: RoundedRectangleBorder(
@@ -95,7 +114,8 @@ class ProfilePageState extends State<ProfilePage> {
                       ),
                       const SizedBox(height: 8),
                       const Text(
-                        'Tingkatkan pengalaman Anda dengan fitur eksklusif mode komitmen dan anda bisa like tanpa terbatas',
+                        'Tingkatkan pengalaman Anda dengan fitur eksklusif '
+                        'mode komitmen dan like tanpa batas.',
                         style: TextStyle(
                           fontSize: 16,
                           color: Colors.grey,
@@ -106,7 +126,6 @@ class ProfilePageState extends State<ProfilePage> {
                         width: double.infinity,
                         child: ElevatedButton(
                           onPressed: () {
-                            // TODO: Implement navigation to premium subscription page
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
                                 content: Text('Fitur Ready'),
@@ -116,10 +135,11 @@ class ProfilePageState extends State<ProfilePage> {
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.blueAccent,
                             foregroundColor: Colors.white,
+                            padding:
+                                const EdgeInsets.symmetric(vertical: 12),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8),
                             ),
-                            padding: const EdgeInsets.symmetric(vertical: 12),
                           ),
                           child: const Text(
                             'Upgrade Premium sekarang',
@@ -129,6 +149,55 @@ class ProfilePageState extends State<ProfilePage> {
                       ),
                     ],
                   ),
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              InkWell(
+                onTap: () {
+                  showDialog(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: const Text('Konfirmasi Logout'),
+                      content:
+                          const Text('Apakah Anda ingin keluar apps?'),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: const Text('Batal'),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                            _logout(context);
+                          },
+                          child: const Text(
+                            'Keluar',
+                            style: TextStyle(color: Colors.red),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: const [
+                    Icon(
+                      Icons.logout,
+                      color: Colors.red,
+                    ),
+                    SizedBox(width: 8),
+                    Text(
+                      'Keluar',
+                      style: TextStyle(
+                        color: Colors.red,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
