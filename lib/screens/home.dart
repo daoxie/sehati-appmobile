@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
-import 'profile.dart';
+import 'package:sehati_appmobile/screens/profile.dart';
+import 'package:sehati_appmobile/controllers/profileController.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  final String name;
+  const HomePage({super.key, required this.name});
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -10,17 +12,38 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
+  late ProfileController _profileController; // Declare the controller
 
-  // The list of widgets for each tab
-  static final List<Widget> _widgetOptions = <Widget>[
-    const Center(
-      child: Text('Index 0: Matching'),
-    ),
-    const Center(
-      child: Text('Index 1: Pesan'),
-    ),
-    const ProfilePage(), // Display the ProfilePage when 'Profile' tab is selected
-  ];
+  late final List<Widget> _widgetOptions;
+
+  @override
+  void initState() {
+    super.initState();
+    _profileController = ProfileController(); // Initialize the controller
+    // Initialize with dummy data for now
+    _profileController.nikController.text = "1234567890123456";
+    _profileController.nameController.text = widget.name;
+    _profileController.dobController.text = "2000-01-01";
+    _profileController.addressController.text = "123 Main St";
+    _profileController.gender = "Laki-laki";
+    _widgetOptions = <Widget>[
+      const Center(
+        child: Text('Index 0: Matching'),
+      ),
+      const Center(
+        child: Text('Index 1: Pesan'),
+      ),
+      ProfilePage(
+          name: widget.name,
+          controller: _profileController), // Pass the controller
+    ];
+  }
+
+  @override
+  void dispose() {
+    _profileController.dispose(); // Dispose the controller
+    super.dispose();
+  }
 
   void _onItemTapped(int index) {
     // Simply update the index to change the displayed widget
@@ -63,3 +86,4 @@ class _HomePageState extends State<HomePage> {
     );
   }
 }
+

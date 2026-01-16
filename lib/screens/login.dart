@@ -53,7 +53,7 @@ class _LoginPageState extends State<LoginPage> {
     // Pindah ke halaman beranda
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(
-        builder: (_) => const HomePage(),
+        builder: (_) => HomePage(name: _loginController.name),
       ),
     );
   }

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 
 class ProfileController {
   //input
@@ -9,8 +11,12 @@ class ProfileController {
   final TextEditingController dobController = TextEditingController();
 
   //gender dan tanggal
-  String? gender;
+  String? gender = "Laki-laki";
   DateTime? selectedDate;
+  File? imageFile; // To store the picked image
+
+  final ImagePicker _picker = ImagePicker();
+  VoidCallback? onImageSelected; // Callback to notify UI of image change
 
   //validasi NIK
   String? validateNIK(String? value) {
@@ -76,9 +82,31 @@ class ProfileController {
     }
   }
 
+  // Image picking methods
+  Future<void> pickImageFromGallery() async {
+    final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      imageFile = File(pickedFile.path);
+      onImageSelected?.call(); // Notify UI
+    }
+  }
+
+  Future<void> pickImageFromCamera() async {
+    final XFile? pickedFile = await _picker.pickImage(source: ImageSource.camera);
+    if (pickedFile != null) {
+      imageFile = File(pickedFile.path);
+      onImageSelected?.call(); // Notify UI
+    }
+  }
+
   //menyimpan profil
   bool saveProfile() {
-    if (gender == null) {
+    if (nikController.text.isEmpty ||
+        nameController.text.isEmpty ||
+        addressController.text.isEmpty ||
+        dobController.text.isEmpty ||
+        gender == null ||
+        gender!.isEmpty) {
       return false;
     }
     
@@ -88,6 +116,9 @@ class ProfileController {
     print('Jenis Kelamin: $gender');
     print('Tanggal Lahir: ${dobController.text}');
     print('Alamat: ${addressController.text}');
+    if (imageFile != null) {
+      print('Image Path: ${imageFile!.path}');
+    }
     
     return true;
   }
@@ -98,5 +129,6 @@ class ProfileController {
     nameController.dispose();
     addressController.dispose();
     dobController.dispose();
+    // No need to dispose ImagePicker or File
   }
 }

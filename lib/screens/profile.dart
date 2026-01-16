@@ -1,196 +1,136 @@
 import 'package:flutter/material.dart';
-import '../controllers/profileController.dart';
+import 'package:sehati_appmobile/screens/editProfile.dart';
+import 'package:sehati_appmobile/controllers/profileController.dart';
+import 'dart:io';
 
 class ProfilePage extends StatefulWidget {
-  const ProfilePage({Key? key}) : super(key: key);
+  final String name;
+  final ProfileController controller;
+
+  const ProfilePage({Key? key, required this.name, required this.controller}) : super(key: key);
 
   @override
-  State<ProfilePage> createState() => _ProfilePageState();
+  _ProfilePageState createState() => _ProfilePageState();
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  final _formKey = GlobalKey<FormState>();
-  late ProfileController _profileController;
-
   @override
   void initState() {
     super.initState();
-    _profileController = ProfileController();
-  }
-
-  void _saveProfile() {
-    // First, validate the form.
-    final bool isFormValid = _formKey.currentState?.validate() ?? false;
-    
-    if (!isFormValid || _profileController.gender == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Harap lengkapi semua data.'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
-    
-    // If valid, save profile and show success.
-    if (_profileController.saveProfile()) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Profil berhasil disimpan!'),
-          backgroundColor: Colors.green,
-        ),
-      );
-    }
+    widget.controller.onImageSelected = () {
+      setState(() {}); // Rebuild the widget when image is selected
+    };
   }
 
   @override
   void dispose() {
-    _profileController.dispose();
+    widget.controller.onImageSelected = null; // Clear the callback
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100], // A light grey background
       appBar: AppBar(
-        title: const Text('Profil Saya', style: TextStyle(color: Colors.black)),
-        backgroundColor: Colors.white,
-        elevation: 1.0, // A subtle shadow
-        iconTheme: const IconThemeData(color: Colors.black),
+        title: const Text('Profil Pengguna'),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: <Widget>[
-              // Profile picture section
-              Center(
-                child: Column(
-                  children: [
-                    CircleAvatar(
-                      radius: 50,
-                      backgroundColor: Colors.green.shade100,
-                      child: Icon(
-                        Icons.person,
-                        size: 60,
-                        color: Colors.green.shade800,
-                      ),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        // TODO: Implement image picker
-                      },
-                      child: const Text('Ganti Foto', style: TextStyle(color: Colors.green)),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // NIK
-              TextFormField(
-                controller: _profileController.nikController,
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(
-                  labelText: 'NIK',
-                  prefixIcon: const Icon(Icons.credit_card),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.0)),
-                  filled: true,
-                  fillColor: Colors.white,
-                ),
-                validator: _profileController.validateNIK,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              // User Image
+              CircleAvatar(
+                radius: 60,
+                backgroundImage: widget.controller.imageFile != null
+                    ? FileImage(widget.controller.imageFile!)
+                    : const NetworkImage(
+                            'https://www.gravatar.com/avatar/205e460b479e2e5b48aec07710c08d50?s=200')
+                        as ImageProvider, // Placeholder image
               ),
               const SizedBox(height: 16),
 
-              // Nama
-              TextFormField(
-                controller: _profileController.nameController,
-                decoration: InputDecoration(
-                  labelText: 'Nama Lengkap',
-                  prefixIcon: const Icon(Icons.person),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.0)),
-                  filled: true,
-                  fillColor: Colors.white,
+              // User Name
+              Text(
+                widget.controller.nameController.text.isNotEmpty
+                    ? widget.controller.nameController.text
+                    : widget.name, // Use name from controller if available, else from widget
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
                 ),
-                validator: _profileController.validateName,
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 16), // Added spacing
 
-              // Jenis Kelamin using DropdownButtonFormField
-              DropdownButtonFormField<String>(
-                value: _profileController.gender,
-                decoration: InputDecoration(
-                  labelText: 'Jenis Kelamin',
-                  prefixIcon: const Icon(Icons.wc),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.0)),
-                  filled: true,
-                  fillColor: Colors.white,
-                ),
-                hint: const Text('Pilih Jenis Kelamin'),
-                items: <String>['Laki-laki', 'Perempuan']
-                    .map<DropdownMenuItem<String>>((String value) {
-                  return DropdownMenuItem<String>(
-                    value: value,
-                    child: Text(value),
-                  );
-                }).toList(),
-                onChanged: (String? newValue) {
-                  setState(() {
-                    _profileController.gender = newValue;
-                  });
-                },
-                validator: _profileController.validateGender,
-              ),
-              const SizedBox(height: 16),
-
-              // Tanggal Lahir
-              TextFormField(
-                controller: _profileController.dobController,
-                readOnly: true,
-                onTap: () => _profileController.selectDate(context),
-                decoration: InputDecoration(
-                  labelText: 'Tanggal Lahir',
-                  prefixIcon: const Icon(Icons.calendar_today),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.0)),
-                  filled: true,
-                  fillColor: Colors.white,
-                ),
-                validator: _profileController.validateDOB,
-              ),
-              const SizedBox(height: 16),
-
-              // Alamat
-              TextFormField(
-                controller: _profileController.addressController,
-                maxLines: 3,
-                decoration: InputDecoration(
-                  labelText: 'Alamat',
-                  prefixIcon: const Icon(Icons.home),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.0)),
-                  filled: true,
-                  fillColor: Colors.white,
-                ),
-                validator: _profileController.validateAddress,
-              ),
-              const SizedBox(height: 24),
-
-              // Save Button
               ElevatedButton(
-                onPressed: _saveProfile,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green, // Green button
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8.0),
-                  ),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => EditProfilePage(controller: widget.controller),
+                    ),
+                  );
+                },
+                child: const Text('Edit Profile'),
+              ),
+              const SizedBox(height: 32),
+
+              // Premium Feature Promotion Card
+              Card(
+                elevation: 4,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Text(
-                  'Simpan Profil',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Dapatkan Fitur Premium!',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blueAccent,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      const Text(
+                        'Tingkatkan pengalaman Anda dengan fitur eksklusif mode komitmen dan anda bisa like tanpa terbatas',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.grey,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            // TODO: Implement navigation to premium subscription page
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Fitur Ready'),
+                              ),
+                            );
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blueAccent,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                          ),
+                          child: const Text(
+                            'Upgrade Premium sekarang',
+                            style: TextStyle(fontSize: 18),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],

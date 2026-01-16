@@ -4,6 +4,7 @@ class LoginController {
   //input email dan pw
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  String name = '';
 
   bool isLoading = false;
 
@@ -32,6 +33,7 @@ class LoginController {
   //login
   Future<bool> submitLogin() async {
     await Future.delayed(const Duration(seconds: 1));
+    name = emailController.text.split('@')[0];
     return true;
   }
 
