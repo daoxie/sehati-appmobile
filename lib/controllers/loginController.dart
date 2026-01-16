@@ -8,13 +8,10 @@ class LoginController {
 
   bool isLoading = false;
 
-  //validasi email
-  String? validateEmail(String? value) {
+  //validasi username
+  String? validateUsername(String? value) {
     if (value == null || value.isEmpty) {
-      return 'Email wajib diisi';
-    }
-    if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(value)) {
-      return 'Format email tidak valid';
+      return 'Username wajib diisi';
     }
     return null;
   }

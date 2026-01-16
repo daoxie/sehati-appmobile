@@ -10,6 +10,14 @@ class RegisterController {
   bool obscurePassword = true;
   bool obscureConfirm = true;
 
+  //validasi username
+  String? validateUsername(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Username wajib diisi';
+    }
+    return null;
+  }
+
   //validasi nama
   String? validateName(String? value) {
     if (value == null || value.isEmpty) {

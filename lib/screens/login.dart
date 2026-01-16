@@ -38,12 +38,11 @@ class _LoginPageState extends State<LoginPage> {
 
     setState(() => isLoading = true);
 
-    // Panggil method login dari controller
     await _loginController.submitLogin();
 
     setState(() => isLoading = false);
 
-    // Menampilkan pesan berhasil
+  
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Berhasil login sebagai ${_loginController.emailController.text}'),
@@ -91,15 +90,15 @@ class _LoginPageState extends State<LoginPage> {
 
                     TextFormField(
                       controller: _loginController.emailController,
-                      keyboardType: TextInputType.emailAddress,
+                      keyboardType: TextInputType.text,
                       decoration: const InputDecoration(
-                        labelText: 'Email',
+                        labelText: 'Username',
                         border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.email),
+                        prefixIcon: Icon(Icons.person),
                         filled: true,
                         fillColor: Colors.white,
                       ),
-                      validator: _loginController.validateEmail,
+                      validator: _loginController.validateUsername,
                     ),
 
                     const SizedBox(height: 12),
