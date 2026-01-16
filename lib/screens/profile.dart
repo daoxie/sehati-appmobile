@@ -1,19 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:sehati_appmobile/screens/editProfile.dart';
-import 'package:sehati_appmobile/controllers/profileController.dart';
-import 'dart:io';
+import 'editProfile.dart';
+import '../controllers/profileController.dart';
 
 class ProfilePage extends StatefulWidget {
   final String name;
   final ProfileController controller;
 
-  const ProfilePage({Key? key, required this.name, required this.controller}) : super(key: key);
+  const ProfilePage({super.key, required this.name, required this.controller});
 
   @override
-  _ProfilePageState createState() => _ProfilePageState();
+  ProfilePageState createState() => ProfilePageState();
 }
 
-class _ProfilePageState extends State<ProfilePage> {
+class ProfilePageState extends State<ProfilePage> {
   @override
   void initState() {
     super.initState();
@@ -46,8 +45,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 backgroundImage: widget.controller.imageFile != null
                     ? FileImage(widget.controller.imageFile!)
                     : const NetworkImage(
-                            'https://www.gravatar.com/avatar/205e460b479e2e5b48aec07710c08d50?s=200')
-                        as ImageProvider, // Placeholder image
+                        'https://www.gravatar.com/avatar/205e460b479e2e5b48aec07710c08d50?s=200'), // Placeholder image
               ),
               const SizedBox(height: 16),
 
