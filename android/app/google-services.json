@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "16323067957",
+    "project_id": "sehati-appmobile",
+    "storage_bucket": "sehati-appmobile.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:16323067957:android:d242894672ec256632b17c",
+        "android_client_info": {
+          "package_name": "com.example.uas_naufalbimo"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAJEnks6J0XymRezvlXy_U7quYOCnlm7Kg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
