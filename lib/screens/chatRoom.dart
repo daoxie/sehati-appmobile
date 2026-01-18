@@ -68,9 +68,6 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                 if (snapshot.hasError) {
                   return Center(child: Text('Error: ${snapshot.error}'));
                 }
-                if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return const Center(child: Text('Kirim pesan pertama Anda!'));
-                }
 
                 final messages = snapshot.data!;
 
@@ -79,127 +76,89 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                   itemCount: messages.length,
                   itemBuilder: (context, index) {
                     final message = messages[index];
-                    return GestureDetector(
-                      onLongPress: () {
-                        showDialog(
-                          context: context,
-                          builder: (context) => AlertDialog(
-                            title: const Text('Hapus Pesan'),
-                            content: const Text(
-                              'Yakin ingin menghapus pesan ini?',
-                            ),
-                            actions: [
-                              TextButton(
-                                onPressed: () => Navigator.pop(context),
-                                child: const Text('Batal'),
-                              ),
-                              TextButton(
-                                onPressed: () {
-                                  chatController.deleteMessage(
-                                    widget.chatRoomId,
-                                    message.messageId,
-                                  );
-                                  Navigator.pop(context);
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text('Pesan dihapus'),
-                                    ),
-                                  );
-                                },
-                                style: TextButton.styleFrom(
-                                  foregroundColor: Colors.red,
-                                ),
-                                child: const Text('Hapus'),
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                      child: Align(
-                        alignment: message.isSentByMe
-                            ? Alignment.centerRight
-                            : Alignment.centerLeft,
-                        child: Container(
-                          margin: const EdgeInsets.symmetric(
-                            vertical: 5,
-                            horizontal: 10,
-                          ),
-                          padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            color: message.isSentByMe
-                                ? Colors.blue[100]
-                                : Colors.grey[300],
-                            borderRadius: BorderRadius.circular(15),
-                          ),
-                          child: message.isImage
-                              ? ClipRRect(
-                                  borderRadius: BorderRadius.circular(10),
-                                  child: Builder(
-                                    builder: (context) {
-                                      try {
-                                        return Image.memory(
-                                          base64Decode(message.text),
-                                          width: 200,
-                                          height: 200,
-                                          fit: BoxFit.cover,
-                                          errorBuilder:
-                                              (context, error, stackTrace) {
-                                                return Container(
-                                                  width: 200,
-                                                  height: 100,
-                                                  color: Colors.grey[200],
-                                                  child: const Column(
-                                                    mainAxisAlignment:
-                                                        MainAxisAlignment
-                                                            .center,
-                                                    children: [
-                                                      Icon(
-                                                        Icons.broken_image,
-                                                        size: 40,
+                    return Align(
+                      alignment: message.isSentByMe
+                          ? Alignment.centerRight
+                          : Alignment.centerLeft,
+                      child: Container(
+                        margin: const EdgeInsets.symmetric(
+                          vertical: 5,
+                          horizontal: 10,
+                        ),
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: message.isSentByMe
+                              ? Colors.blue[100]
+                              : Colors.grey[300],
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                        child: message.isImage
+                            ? ClipRRect(
+                                borderRadius: BorderRadius.circular(10),
+                                child: Builder(
+                                  builder: (context) {
+                                    try {
+                                      return Image.memory(
+                                        base64Decode(message.text),
+                                        width: 200,
+                                        height: 200,
+                                        fit: BoxFit.cover,
+                                        errorBuilder:
+                                            (context, error, stackTrace) {
+                                              return Container(
+                                                width: 200,
+                                                height: 100,
+                                                color: Colors.grey[200],
+                                                child: const Column(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.center,
+                                                  children: [
+                                                    Icon(
+                                                      Icons.broken_image,
+                                                      size: 40,
+                                                      color: Colors.grey,
+                                                    ),
+                                                    SizedBox(height: 8),
+                                                    Text(
+                                                      'Gagal memuat gambar',
+                                                      style: TextStyle(
                                                         color: Colors.grey,
                                                       ),
-                                                      SizedBox(height: 8),
-                                                      Text(
-                                                        'Gagal memuat gambar',
-                                                        style: TextStyle(
-                                                          color: Colors.grey,
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                );
-                                              },
-                                        );
-                                      } catch (e) {
-                                        return Container(
-                                          width: 200,
-                                          height: 100,
-                                          color: Colors.grey[200],
-                                          child: const Column(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.center,
-                                            children: [
-                                              Icon(
-                                                Icons.broken_image,
-                                                size: 40,
+                                                    ),
+                                                  ],
+                                                ),
+                                              );
+                                            },
+                                      );
+                                    } catch (e) {
+                                      return Container(
+                                        width: 200,
+                                        height: 100,
+                                        color: Colors.grey[200],
+                                        child: const Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            Icon(
+                                              Icons.broken_image,
+                                              size: 40,
+                                              color: Colors.grey,
+                                            ),
+                                            SizedBox(height: 8),
+                                            Text(
+                                              'Format gambar tidak valid',
+                                              style: TextStyle(
                                                 color: Colors.grey,
                                               ),
-                                              SizedBox(height: 8),
-                                              Text(
-                                                'Format gambar tidak valid',
-                                                style: TextStyle(
-                                                  color: Colors.grey,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        );
-                                      }
-                                    },
-                                  ),
-                                )
-                              : Text(message.text),
-                        ),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    }
+                                  },
+                                ),
+                              )
+                            : Text(message.text),
                       ),
                     );
                   },

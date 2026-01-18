@@ -296,7 +296,7 @@ class _MatchingScreenState extends State<MatchingScreen>
       child: Stack(
         fit: StackFit.expand,
         children: [
-          // Gambar Profil
+          //Gambar Profil
           if (user.imageUrl != null && user.imageUrl!.isNotEmpty)
             _buildImage(user.imageUrl!)
           else
@@ -305,7 +305,6 @@ class _MatchingScreenState extends State<MatchingScreen>
               child: const Icon(Icons.person, size: 100, color: Colors.white),
             ),
 
-          // Gradient Overlay untuk teks
           Positioned(
             bottom: 0,
             left: 0,
