@@ -1,203 +1,221 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:intl/intl.dart';
+import '../models/chat_models.dart';
 
-class MatchingController extends ChangeNotifier {
+class MatchingController with ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-
-  // List of profiles to display in the matching queue
-  List<DocumentSnapshot> _profiles = [];
-  List<DocumentSnapshot> get profiles => _profiles;
-
+  User? _currentUser;
+  List<ChatUser> _profiles = []; // Renamed from _usersToMatch
   bool _isLoading = false;
-  bool get isLoading => _isLoading;
-
   String? _errorMessage;
+  List<ChatUser> _allAvailableProfiles = []; // Renamed from _allAvailableUsers
+
+  // New: Callback for when a match is found
+  Function? onMatchFound;
+  ChatUser? _lastMatchedUser; // To store the user that was just matched
+
+  List<ChatUser> get profiles => _profiles; // Renamed getter
+  ChatUser? get lastMatchedUser => _lastMatchedUser; // Getter for the last matched user
+  bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
-  VoidCallback? onMatchFound;
-
-  MatchingController() {
-    loadProfiles();
+  String? get currentUserId => _currentUser?.uid; // New getter for current user's UID
+  String? get currentMatchChatRoomId { // New getter for chatRoomId after a match
+    if (_currentUser != null && _lastMatchedUser != null) {
+      return _generateChatRoomId(_currentUser!.uid, _lastMatchedUser!.uid);
+    }
+    return null;
   }
 
+  MatchingController() {
+    _currentUser = _auth.currentUser;
+    if (_currentUser != null) {
+      loadProfiles(); // Call loadProfiles from constructor
+    }
+    _auth.authStateChanges().listen((User? user) {
+      _currentUser = user;
+      if (user != null) {
+        loadProfiles();
+      } else {
+        _profiles = [];
+        _allAvailableProfiles = [];
+        _lastMatchedUser = null;
+        notifyListeners();
+      }
+    });
+  }
+
+  // Renamed _fetchUsersToMatch to loadProfiles
   Future<void> loadProfiles() async {
     _isLoading = true;
-    notifyListeners();
     _errorMessage = null;
+    notifyListeners();
 
     try {
-      final String? currentUserId = _auth.currentUser?.uid;
-      if (currentUserId == null) {
-        _errorMessage = "User not logged in.";
+      if (_currentUser == null) {
+        _errorMessage = 'User not logged in.';
         _isLoading = false;
         notifyListeners();
         return;
       }
+      print('Current User UID: ${_currentUser!.uid}');
 
-      // 1. Fetch current user's profile and preferences
-      final DocumentSnapshot currentUserDoc = await _firestore.collection('users').doc(currentUserId).get();
-      if (!currentUserDoc.exists) {
-        _errorMessage = "Current user profile not found.";
-        _isLoading = false;
-        notifyListeners();
-        return;
-      }
-      final Map<String, dynamic> currentUserData = currentUserDoc.data() as Map<String, dynamic>;
+      QuerySnapshot usersSnapshot = await _firestore.collection('users').get();
+      print('Total documents in "users" collection: ${usersSnapshot.docs.length}');
 
-      final String? searchGender = currentUserData['searchGender'];
-      final int? minAge = currentUserData['minAge'];
-      final int? maxAge = currentUserData['maxAge'];
-      final String? currentUserGender = currentUserData['gender'];
-
-      // 2. Fetch users current user has already liked/disliked
-      final QuerySnapshot likedUsersSnapshot = await _firestore.collection('users').doc(currentUserId).collection('likes').get();
-      final List<String> likedUserIds = likedUsersSnapshot.docs.map((doc) => doc.id).toList();
-
-      final QuerySnapshot dislikedUsersSnapshot = await _firestore.collection('users').doc(currentUserId).collection('dislikes').get();
-      final List<String> dislikedUserIds = dislikedUsersSnapshot.docs.map((doc) => doc.id).toList();
-
-      final List<String> excludedUserIds = [...likedUserIds, ...dislikedUserIds, currentUserId];
-
-      // 3. Construct the query for potential matches
-      Query query = _firestore.collection('users');
-
-      // Filter by gender preference
-      if (searchGender != null && searchGender != 'Semua') {
-        query = query.where('gender', isEqualTo: searchGender);
-      } else if (currentUserGender != null) {
-        // If current user is looking for 'Semua' or has no preference,
-        // still make sure not to show users of the same gender if not desired
-        // (This is a simplified logic, can be made more complex)
-        // For now, if 'Semua', show all genders. If current user has gender,
-        // and searchGender is null/empty, assume they want opposite gender.
-        // This needs to be refined based on actual app logic.
-      }
-
-      // Filter by age range
-      // Age calculation based on DOB (assuming 'dob' is stored as 'dd MMMM yyyy')
-      // This part is tricky and often better handled with calculated age fields or server-side functions.
-      // For a client-side filter, we would fetch all and then filter.
-      // Firebase doesn't allow range queries on non-indexed fields or complex client-side calculations efficiently.
-      // For now, let's fetch all eligible by gender and then filter by age on client side.
-
-      final QuerySnapshot potentialMatchesSnapshot = await query.get();
-      
-      List<DocumentSnapshot> allPotentialProfiles = potentialMatchesSnapshot.docs;
-      
-      // Client-side filtering for age and exclusion
-      _profiles = allPotentialProfiles.where((doc) {
-        if (excludedUserIds.contains(doc.id)) {
-          return false;
+      List<ChatUser> fetchedAllUsers = [];
+      for (var doc in usersSnapshot.docs) {
+        final data = doc.data() as Map<String, dynamic>?;
+        if (data == null) {
+          print('Warning: Document ${doc.id} has no data and will be skipped.');
+          continue;
         }
+        fetchedAllUsers.add(ChatUser.fromMap(data, documentId: doc.id));
+      }
+      print('Valid ChatUsers parsed from DB (including current user): ${fetchedAllUsers.length}');
 
-        final Map<String, dynamic> targetUserData = doc.data() as Map<String, dynamic>;
-        final String? targetUserDobString = targetUserData['dob'];
-        
-        if (targetUserDobString != null && minAge != null && maxAge != null) {
-          try {
-            final DateTime targetUserDob = DateFormat('dd MMMM yyyy').parse(targetUserDobString);
-            final int targetUserAge = (DateTime.now().difference(targetUserDob).inDays / 365).floor();
-            if (targetUserAge < minAge || targetUserAge > maxAge) {
-              return false;
-            }
-          } catch (e) {
-            print("Error parsing DOB for user ${doc.id}: $e");
-            return false; // Exclude if DOB parsing fails
-          }
+      // Filter out the current user and store as all available users
+      _allAvailableProfiles = fetchedAllUsers
+          .where((user) => user.uid != _currentUser!.uid)
+          .toList();
+      print('All available users (excluding current user): ${_allAvailableProfiles.length}');
+
+      // Get already swiped users by current user (both liked and disliked)
+      QuerySnapshot swipedUsersSnapshot = await _firestore
+          .collection('users')
+          .doc(_currentUser!.uid)
+          .collection('swipes')
+          .get();
+      Set<String> swipedUserIds = swipedUsersSnapshot.docs.map((doc) => doc.id).toSet();
+      print('Users already swiped by current user: ${swipedUserIds.length}');
+
+      // Filter out already swiped users for the initial load
+      _profiles = _allAvailableProfiles
+          .where((user) => !swipedUserIds.contains(user.uid))
+          .toList();
+      print('Profiles to match initially (not yet swiped): ${_profiles.length}');
+
+      if (_profiles.isEmpty) {
+        // If no new profiles, display all available profiles again (reset)
+        print('No new profiles. Resetting cards from all available users.');
+        _profiles = List.from(_allAvailableProfiles); // Populate with all users
+        if (_profiles.isEmpty) {
+          _errorMessage = 'Tidak ada pengguna baru untuk dicocokkan.';
         }
-        return true;
-      }).toList();
-
-      _profiles.shuffle(); // Shuffle the profiles for variety
+      } else {
+          _errorMessage = 'Semua pengguna sudah di-swipe. Kartu akan diulang.'; // Inform user
+        }
 
     } catch (e) {
-      _errorMessage = "Failed to load profiles: $e";
-      print("Error loading profiles: $e");
+      _errorMessage = 'Error fetching profiles: $e';
+      print('Error fetching profiles: $e');
     } finally {
       _isLoading = false;
       notifyListeners();
     }
   }
 
-  // Placeholder for swipe actions
-  Future<void> swipeLeft(String profileId) async {
-    final String? currentUserId = _auth.currentUser?.uid;
-    if (currentUserId == null) return;
-
-    try {
-      await _firestore.collection('users').doc(currentUserId).collection('dislikes').doc(profileId).set({
-        'timestamp': FieldValue.serverTimestamp(),
-      });
-      // Remove from _profiles list
-      _profiles.removeWhere((profile) => profile.id == profileId);
-      notifyListeners();
-    } catch (e) {
-      _errorMessage = "Failed to record dislike: $e";
-      print("Error recording dislike: $e");
-      notifyListeners();
-    }
-  }
-
+  // New swipe methods for manual implementation
   Future<void> swipeRight(String profileId) async {
-    final String? currentUserId = _auth.currentUser?.uid;
-    if (currentUserId == null) return;
+    await _handleSwipe(profileId, true);
+  }
+
+  Future<void> swipeLeft(String profileId) async {
+    await _handleSwipe(profileId, false);
+  }
+
+  Future<void> _handleSwipe(String profileId, bool isLiked) async {
+    if (_currentUser == null) {
+      _errorMessage = 'User not logged in.';
+      notifyListeners();
+      return;
+    }
+
+    ChatUser? swipedUser;
+    try {
+      swipedUser = _profiles.firstWhere((user) => user.uid == profileId);
+    } catch (e) {
+      print('Error: Profile with ID $profileId not found in current profiles.');
+      return;
+    }
 
     try {
-      await _firestore.collection('users').doc(currentUserId).collection('likes').doc(profileId).set({
+      // Record the swipe action
+      await _firestore.collection('users').doc(_currentUser!.uid).collection('swipes').doc(swipedUser.uid).set({
+        'liked': isLiked,
         'timestamp': FieldValue.serverTimestamp(),
       });
-      // Remove from _profiles list
-      _profiles.removeWhere((profile) => profile.id == profileId);
-      notifyListeners();
 
-      // After liking, check for a match
-      await _checkForMatch(currentUserId, profileId);
+      if (isLiked) {
+        // Check if the swiped user has also liked the current user
+        DocumentSnapshot swipedUserSwipeDoc = await _firestore.collection('users').doc(swipedUser.uid).collection('swipes').doc(_currentUser!.uid).get();
 
-    } catch (e) {
-      _errorMessage = "Failed to record like or check for match: $e";
-      print("Error recording like or checking for match: $e");
-      notifyListeners();
-    }
-  }
-
-  // Helper function to check for a match
-  Future<void> _checkForMatch(String currentUserId, String targetUserId) async {
-    try {
-      final targetUserLikes = await _firestore.collection('users').doc(targetUserId).collection('likes').doc(currentUserId).get();
-
-      if (targetUserLikes.exists) {
-        // It's a match!
-        final matchId = _getMatchId(currentUserId, targetUserId);
-        await _firestore.collection('matches').doc(matchId).set({
-          'users': [currentUserId, targetUserId],
-          'timestamp': FieldValue.serverTimestamp(),
-          'lastMessage': '', // Initialize for chat
-          'lastMessageTimestamp': FieldValue.serverTimestamp(),
-        });
-        print("Match found between $currentUserId and $targetUserId!");
-        onMatchFound?.call();
-        // TODO: Trigger navigation to chat or show a match dialog
+        if (swipedUserSwipeDoc.exists && (swipedUserSwipeDoc.data() as Map<String, dynamic>)['liked'] == true) {
+          // It's a match!
+          await _createMatch(swipedUser);
+          _lastMatchedUser = swipedUser; // Store the matched user
+          _errorMessage = 'It\'s a Match with ${swipedUser.username}!'; // Use errorMessage to show match status
+          onMatchFound?.call(); // Trigger the callback
+        }
       }
+      
+      // Remove the swiped user from the list
+      _profiles.removeWhere((user) => user.uid == swipedUser.uid);
+      if (_profiles.isEmpty) {
+        print('All cards swiped. Resetting cards from all available users.');
+        _profiles = List.from(_allAvailableProfiles); // Reset cards
+        if (_profiles.isEmpty) {
+          _errorMessage = 'Tidak ada pengguna baru untuk dicocokkan.'; // Still empty, no users at all
+        }
+      } else {
+          _errorMessage = 'Semua pengguna sudah di-swipe. Kartu akan diulang.'; // Inform user
+        }
     } catch (e) {
-      _errorMessage = "Error checking for match: $e";
-      print("Error checking for match: $e");
-      // Don't notifyListeners here as it might interfere with ongoing UI updates
+      _errorMessage = 'Error performing swipe action: $e';
+      print('Error performing swipe action: $e');
+    } finally {
+      notifyListeners();
     }
   }
 
-  // Helper to create a consistent match ID
-  String _getMatchId(String user1, String user2) {
-    List<String> userIds = [user1, user2];
-    userIds.sort(); // Ensure consistent order
-    return userIds.join('_');
+  Future<void> _createMatch(ChatUser matchedUser) async {
+    if (_currentUser == null) return;
+
+    String chatRoomId = _generateChatRoomId(_currentUser!.uid, matchedUser.uid);
+
+    // Add to current user's matches
+    await _firestore.collection('users').doc(_currentUser!.uid).collection('matches').doc(matchedUser.uid).set({
+      'matchedAt': FieldValue.serverTimestamp(),
+      'chatRoomId': chatRoomId,
+      'otherUserId': matchedUser.uid,
+    });
+
+    // Add to matched user's matches
+    await _firestore.collection('users').doc(matchedUser.uid).collection('matches').doc(_currentUser!.uid).set({
+      'matchedAt': FieldValue.serverTimestamp(),
+      'chatRoomId': chatRoomId,
+      'otherUserId': _currentUser!.uid,
+    });
+
+    // Create a chat room
+    await _firestore.collection('chatRooms').doc(chatRoomId).set({
+      'users': [_currentUser!.uid, matchedUser.uid],
+      'createdAt': FieldValue.serverTimestamp(),
+      'lastMessage': 'Match baru! Sapa dia sekarang.',
+      'lastMessageTime': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
   }
 
-  @override
-  void dispose() {
-    // Clean up resources if any
-    super.dispose();
+  String _generateChatRoomId(String uid1, String uid2) {
+    // Ensure consistent chat room ID regardless of user order
+    return uid1.compareTo(uid2) < 0 ? '${uid1}_$uid2' : '${uid2}_$uid1';
+  }
+
+  // Helper to clear error message
+  void clearErrorMessage() {
+    _errorMessage = null;
+    notifyListeners();
   }
 }
