@@ -37,97 +37,136 @@ class ProfilePage extends StatelessWidget {
           appBar: AppBar(
             title: const Text('Profil Pengguna'),
           ),
-          body: SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  CircleAvatar(
-                    radius: 60,
-                    backgroundImage: () {
-                      if (imageUrl != null && imageUrl.isNotEmpty) {
-                        try {
-                          if (imageUrl.startsWith('http')) {
-                            return NetworkImage(imageUrl);
-                          } else {
-                            return MemoryImage(base64Decode(imageUrl));
+          body: Consumer<ProfileController>(
+            builder: (context, profileController, child) {
+              return SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      CircleAvatar(
+                        radius: 60,
+                        backgroundImage: () {
+                          if (imageUrl != null && imageUrl.isNotEmpty) {
+                            try {
+                              if (imageUrl.startsWith('http')) {
+                                return NetworkImage(imageUrl);
+                              } else {
+                                return MemoryImage(base64Decode(imageUrl));
+                              }
+                            } catch (e) {
+                              return const NetworkImage('https://www.gravatar.com/avatar/205e460b479e2e5b48aec07710c08d50?s=200');
+                            }
                           }
-                        } catch (e) {
                           return const NetworkImage('https://www.gravatar.com/avatar/205e460b479e2e5b48aec07710c08d50?s=200');
-                        }
-                      }
-                      return const NetworkImage('https://www.gravatar.com/avatar/205e460b479e2e5b48aec07710c08d50?s=200');
-                    }() as ImageProvider,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    name,
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () {
-                      final profileController = Provider.of<ProfileController>(context, listen: false);
-
-                      profileController.nameController.text = userData['name'] ?? '';
-                      profileController.nikController.text = userData['nik'] ?? '';
-                      profileController.addressController.text = userData['address'] ?? '';
-                      profileController.dobController.text = userData['dob'] ?? '';
-                      profileController.gender = userData['gender'];
-                      profileController.imageUrl = userData['imageUrl'];
-                      
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const EditProfilePage(),
+                        }() as ImageProvider,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        name,
+                        style: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
                         ),
-                      );
-                    },
-                    child: const Text('Edit Profile'),
-                  ),
-                  const SizedBox(height: 32),
-                  Card(
-                    margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Upgrade to Premium',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
+                      ),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: () {
+                          // Prefill the controller with current data before navigating
+                          profileController.nameController.text = userData['name'] ?? '';
+                          profileController.nikController.text = userData['nik'] ?? '';
+                          profileController.addressController.text = userData['address'] ?? '';
+                          profileController.dobController.text = userData['dob'] ?? '';
+                          profileController.gender = userData['gender'];
+                          profileController.searchGender = userData['searchGender'];
+                          profileController.minAgeController.text = (userData['minAge'] ?? '').toString();
+                          profileController.maxAgeController.text = (userData['maxAge'] ?? '').toString();
+                          profileController.imageUrl = userData['imageUrl'];
+                          
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const EditProfilePage(),
                             ),
-                          ),
-                          const SizedBox(height: 8),
-                          const Text(
-                            'Unlock exclusive features and enhance your experience!',
-                            style: TextStyle(fontSize: 14),
-                          ),
-                          const SizedBox(height: 16),
-                          ElevatedButton(
-                            onPressed: () {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Go to Upgrade Screen')),
-                              );
-                            },
-                            child: const Text('Learn More'),
-                          ),
+                          );
+                        },
+                        child: const Text('Edit Profile'),
+                      ),
+                      const SizedBox(height: 16), // Add spacing before new cards
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          _buildStatCard('Likes Diberikan', profileController.likesGivenCount),
+                          _buildStatCard('Likes Diterima', profileController.likesReceivedCount),
                         ],
                       ),
-                    ),
+                      const SizedBox(height: 32),
+                      Card(
+                        margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Upgrade to Premium',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              const Text(
+                                'Unlock exclusive features and enhance your experience!',
+                                style: TextStyle(fontSize: 14),
+                              ),
+                              const SizedBox(height: 16),
+                              ElevatedButton(
+                                onPressed: () {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Go to Upgrade Screen')),
+                                  );
+                                },
+                                child: const Text('Learn More'),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            ),
+                ),
+              );
+            },
           ),
         );
       },
     );
   }
+}
+
+Widget _buildStatCard(String title, int count) {
+  return Expanded(
+    child: Card(
+      elevation: 2,
+      margin: const EdgeInsets.symmetric(horizontal: 8.0),
+      child: Padding(
+        padding: const EdgeInsets.all(12.0),
+        child: Column(
+          children: [
+            Text(
+              title,
+              style: const TextStyle(fontSize: 14, color: Colors.grey),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              count.toString(),
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
 }

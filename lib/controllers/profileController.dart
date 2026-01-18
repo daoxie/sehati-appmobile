@@ -15,12 +15,21 @@ class ProfileController extends ChangeNotifier {
   final TextEditingController nameController = TextEditingController();
   final TextEditingController addressController = TextEditingController();
   final TextEditingController dobController = TextEditingController();
+  final TextEditingController minAgeController = TextEditingController();
+  final TextEditingController maxAgeController = TextEditingController();
 
   String? gender;
   DateTime? selectedDate;
-  XFile? _pickedXFile;
-  XFile? get pickedXFile => _pickedXFile;
+  String? searchGender;
+  Uint8List? _pickedImageBytes;
+  Uint8List? get pickedImageBytes => _pickedImageBytes;
   String? imageUrl;
+
+  int _likesGivenCount = 0;
+  int get likesGivenCount => _likesGivenCount;
+
+  int _likesReceivedCount = 0;
+  int get likesReceivedCount => _likesReceivedCount;
 
   final ImagePicker _picker = ImagePicker();
 
@@ -59,6 +68,36 @@ class ProfileController extends ChangeNotifier {
     return null;
   }
 
+  //validasi Min Age
+  String? validateMinAge(String? value) {
+    if (value == null || value.isEmpty) {
+      return null; // Optional
+    }
+    if (int.tryParse(value) == null) {
+      return 'Umur minimal harus angka';
+    }
+    return null;
+  }
+
+  //validasi Max Age
+  String? validateMaxAge(String? value) {
+    if (value == null || value.isEmpty) {
+      return null; // Optional
+    }
+    if (int.tryParse(value) == null) {
+      return 'Umur maksimal harus angka';
+    }
+    return null;
+  }
+
+  //validasi Search Gender
+  String? validateSearchGender(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Preferensi jenis kelamin wajib dipilih';
+    }
+    return null;
+  }
+
   Future<void> selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
@@ -86,7 +125,7 @@ class ProfileController extends ChangeNotifier {
     final XFile? pickedFile = await _picker.pickImage(
         source: ImageSource.gallery, imageQuality: 40, maxWidth: 400);
     if (pickedFile != null) {
-      _pickedXFile = pickedFile;
+      _pickedImageBytes = await pickedFile.readAsBytes();
       notifyListeners();
     }
   }
@@ -95,7 +134,7 @@ class ProfileController extends ChangeNotifier {
     final XFile? pickedFile = await _picker.pickImage(
         source: ImageSource.camera, imageQuality: 40, maxWidth: 400);
     if (pickedFile != null) {
-      _pickedXFile = pickedFile;
+      _pickedImageBytes = await pickedFile.readAsBytes();
       notifyListeners();
     }
   }
@@ -125,9 +164,8 @@ class ProfileController extends ChangeNotifier {
     try {
       String? imageBase64;
 
-      if (_pickedXFile != null) {
-        Uint8List imageBytes = await _pickedXFile!.readAsBytes();
-        imageBase64 = base64Encode(imageBytes);
+      if (_pickedImageBytes != null) {
+        imageBase64 = base64Encode(_pickedImageBytes!);
       }
 
       Map<String, dynamic> userData = {
@@ -136,6 +174,9 @@ class ProfileController extends ChangeNotifier {
         'address': addressController.text,
         'dob': dobController.text,
         'gender': gender,
+        'searchGender': searchGender,
+        'minAge': int.tryParse(minAgeController.text) ?? null,
+        'maxAge': int.tryParse(maxAgeController.text) ?? null,
       };
 
       if (imageBase64 != null) {
@@ -172,9 +213,13 @@ class ProfileController extends ChangeNotifier {
         addressController.text = data['address'] ?? '';
         dobController.text = data['dob'] ?? '';
         gender = data['gender'];
+        searchGender = data['searchGender'];
+        minAgeController.text = (data['minAge'] ?? '').toString();
+        maxAgeController.text = (data['maxAge'] ?? '').toString();
         imageUrl = data['imageUrl'];
         errorMessage = null;
-        notifyListeners();
+        await _fetchLikeCounts(uid); // Fetch like counts
+        notifyListeners(); // Notify UI of loaded data
       } else {
         errorMessage = 'Profil pengguna tidak ditemukan.';
       }
@@ -189,13 +234,45 @@ class ProfileController extends ChangeNotifier {
     }
   }
 
+  // Fetch like counts
+  Future<void> _fetchLikeCounts(String userId) async {
+    try {
+      // Likes given by current user
+      final QuerySnapshot likesGivenSnapshot = await _firestore.collection('users').doc(userId).collection('likes').get();
+      _likesGivenCount = likesGivenSnapshot.docs.length;
+
+      // Likes received by current user (this is a more expensive query)
+      // This requires querying all users' 'likes' subcollections, which is not scalable.
+      // A better approach would be to maintain a counter on the user document itself,
+      // or use a Cloud Function to update this.
+      // For now, a simplified approach assuming a manageable number of users.
+      int receivedCount = 0;
+      final QuerySnapshot allUsersSnapshot = await _firestore.collection('users').get();
+      for (var userDoc in allUsersSnapshot.docs) {
+        if (userDoc.id == userId) continue; // Don't check self
+        final DocumentSnapshot receivedLikeSnapshot = await _firestore.collection('users').doc(userDoc.id).collection('likes').doc(userId).get();
+        if (receivedLikeSnapshot.exists) {
+          receivedCount++;
+        }
+      }
+      _likesReceivedCount = receivedCount;
+      notifyListeners();
+    } catch (e) {
+      print('Error fetching like counts: $e');
+      // Optionally set an error message
+    }
+  }
+
   void clearAllExceptName() {
     nikController.clear();
     addressController.clear();
     dobController.clear();
+    minAgeController.clear();
+    maxAgeController.clear();
     gender = null;
+    searchGender = null;
     selectedDate = null;
-    _pickedXFile = null;
+    _pickedImageBytes = null;
     imageUrl = null;
   }
 
@@ -205,6 +282,8 @@ class ProfileController extends ChangeNotifier {
     nameController.dispose();
     addressController.dispose();
     dobController.dispose();
+    minAgeController.dispose();
+    maxAgeController.dispose();
     super.dispose();
   }
 }

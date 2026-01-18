@@ -1,7 +1,7 @@
 import 'dart:convert';
-import 'dart:io';
 
-import 'package:flutter/foundation.dart' show kIsWeb;
+
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -115,35 +115,11 @@ class EditProfilePageState extends State<EditProfilePage> {
                       children: [
                         CircleAvatar(
                           radius: 60,
-                          backgroundImage: () {
-                            if (controller.pickedXFile != null) {
-                              if (kIsWeb) {
-                                return NetworkImage(
-                                    controller.pickedXFile!.path);
-                              } else {
-                                return FileImage(
-                                    File(controller.pickedXFile!.path));
-                              }
-                            }
-
-                            if (controller.imageUrl != null &&
-                                controller.imageUrl!.isNotEmpty) {
-                              try {
-                                if (controller.imageUrl!.startsWith('http')) {
-                                  return NetworkImage(controller.imageUrl!);
-                                } else {
-                                  return MemoryImage(
-                                      base64Decode(controller.imageUrl!));
-                                }
-                              } catch (e) {
-                                return const NetworkImage(
-                                    'https://www.gravatar.com/avatar/?d=mp');
-                              }
-                            }
-
-                            return const NetworkImage(
-                                'https://www.gravatar.com/avatar/?d=mp');
-                          }() as ImageProvider,
+                          backgroundImage: controller.pickedImageBytes != null
+                              ? MemoryImage(controller.pickedImageBytes!)
+                              : (controller.imageUrl != null && controller.imageUrl!.isNotEmpty)
+                                  ? MemoryImage(base64Decode(controller.imageUrl!))
+                                  : const NetworkImage('https://www.gravatar.com/avatar/?d=mp') as ImageProvider,
                         ),
                         const SizedBox(height: 12),
                         TextButton.icon(

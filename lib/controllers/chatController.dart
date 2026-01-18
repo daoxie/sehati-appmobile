@@ -15,36 +15,67 @@ class ChatController extends ChangeNotifier {
 
   Stream<List<ChatContactModel>> getChatContacts() {
     final String? currentUserId = _auth.currentUser?.uid;
+    if (currentUserId == null) {
+      return Stream.value([]);
+    }
+
     return _firestore
         .collection('users')
-        .where('uid', isNotEqualTo: currentUserId)
+        .doc(currentUserId)
+        .collection('matches') // Get matches for the current user
         .snapshots()
-        .map((snapshot) {
-      return snapshot.docs.map((doc) {
-        final userData = doc.data();
-        return ChatContactModel(
-          id: userData['uid'] ?? '',
-          name: userData['name'] ?? 'No Name',
-          imageUrl: userData['imageUrl'] ?? 'https://www.gravatar.com/avatar/?d=mp',
-          latestMessage: '', 
-          latestTimestamp: '',
-        );
-      }).toList();
+        .asyncMap((matchesSnapshot) async {
+      List<ChatContactModel> contacts = [];
+
+      for (var matchDoc in matchesSnapshot.docs) {
+        final matchData = matchDoc.data();
+        final String otherUserId = matchData['otherUserId'];
+        final String chatRoomId = matchData['chatRoomId'];
+
+        // Fetch the other user's profile data
+        DocumentSnapshot otherUserDoc = await _firestore.collection('users').doc(otherUserId).get();
+        if (otherUserDoc.exists) {
+          final otherUserData = otherUserDoc.data() as Map<String, dynamic>;
+          final ChatUser otherUser = ChatUser.fromMap(otherUserData, documentId: otherUserDoc.id);
+
+          // Fetch latest message from chatRoom
+          DocumentSnapshot chatRoomDoc = await _firestore.collection('chatRooms').doc(chatRoomId).get();
+          String latestMessage = '';
+          String latestTimestamp = '';
+
+          if (chatRoomDoc.exists) {
+            final chatRoomData = chatRoomDoc.data() as Map<String, dynamic>;
+            latestMessage = chatRoomData['lastMessage'] ?? '';
+            final Timestamp? lastMessageTime = chatRoomData['lastMessageTime'] as Timestamp?;
+            if (lastMessageTime != null) {
+              final dateTime = lastMessageTime.toDate().toLocal();
+              latestTimestamp = "${dateTime.hour}:${dateTime.minute.toString().padLeft(2, '0')}";
+            }
+          }
+
+          contacts.add(ChatContactModel(
+            id: otherUser.uid,
+            name: otherUser.username,
+            imageUrl: otherUser.profilePictureUrl ?? 'https://www.gravatar.com/avatar/?d=mp',
+            latestMessage: latestMessage,
+            latestTimestamp: latestTimestamp,
+            chatRoomId: chatRoomId,
+            otherUser: otherUser,
+          ));
+        }
+      }
+      return contacts;
     });
   }
 
-  Stream<List<MessageModel>> getMessages(String receiverId) {
+  Stream<List<MessageModel>> getMessages(String chatRoomId) { // Updated to use chatRoomId directly
     final String? senderId = _auth.currentUser?.uid;
     if (senderId == null) {
       return Stream.value([]);
     }
 
-    List<String> ids = [senderId, receiverId];
-    ids.sort();
-    String chatRoomId = ids.join('_');
-
     return _firestore
-        .collection('chats')
+        .collection('chatRooms') // Messages are now under chatRooms
         .doc(chatRoomId)
         .collection('messages')
         .orderBy('timestamp', descending: true)
@@ -68,7 +99,7 @@ class ChatController extends ChangeNotifier {
     });
   }
 
-  void sendMessage(String text, String receiverId, {bool isImage = false}) async {
+  void sendMessage(String text, String chatRoomId, String receiverId, {bool isImage = false}) async { // Updated to accept chatRoomId
     if (text.isEmpty) return;
 
     final String? senderId = _auth.currentUser?.uid;
@@ -76,10 +107,6 @@ class ChatController extends ChangeNotifier {
       print('Error: User not logged in.');
       return;
     }
-
-    List<String> ids = [senderId, receiverId];
-    ids.sort();
-    String chatRoomId = ids.join('_');
 
     Map<String, dynamic> messageData = {
       'senderId': senderId,
@@ -89,14 +116,24 @@ class ChatController extends ChangeNotifier {
       'isImage': isImage,
     };
 
+    // Add message to the specific chat room's messages subcollection
     await _firestore
-        .collection('chats')
+        .collection('chatRooms')
         .doc(chatRoomId)
         .collection('messages')
         .add(messageData);
+
+    // Update lastMessage and lastMessageTime in the chatRoom document
+    await _firestore
+        .collection('chatRooms')
+        .doc(chatRoomId)
+        .set({
+          'lastMessage': text,
+          'lastMessageTime': FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true));
   }
 
-  Future<void> _uploadImageAndSend(XFile? pickedFile, String receiverId) async {
+  Future<void> _uploadImageAndSend(XFile? pickedFile, String chatRoomId, String receiverId) async { // Updated
     if (pickedFile == null) return;
 
     final String? senderId = _auth.currentUser?.uid;
@@ -112,19 +149,19 @@ class ChatController extends ChangeNotifier {
       final TaskSnapshot snapshot = await uploadTask;
       final String downloadUrl = await snapshot.ref.getDownloadURL();
 
-      sendMessage(downloadUrl, receiverId, isImage: true);
+      sendMessage(downloadUrl, chatRoomId, receiverId, isImage: true);
     } catch (e) {
       print('Error uploading image: $e');
     }
   }
 
-  Future<void> pickAndSendImage(String receiverId) async {
+  Future<void> pickAndSendImage(String chatRoomId, String receiverId) async { // Updated
     final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
-    await _uploadImageAndSend(pickedFile, receiverId);
+    await _uploadImageAndSend(pickedFile, chatRoomId, receiverId);
   }
 
-  Future<void> takeAndSendImage(String receiverId) async {
+  Future<void> takeAndSendImage(String chatRoomId, String receiverId) async { // Updated
     final XFile? pickedFile = await _picker.pickImage(source: ImageSource.camera);
-    await _uploadImageAndSend(pickedFile, receiverId);
+    await _uploadImageAndSend(pickedFile, chatRoomId, receiverId);
   }
 }

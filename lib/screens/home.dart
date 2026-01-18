@@ -4,6 +4,8 @@ import 'package:provider/provider.dart';
 import 'profile.dart';
 import '../controllers/profileController.dart';
 import 'chatList.dart';
+import 'matching_screen.dart'; // Corrected import to matching_screen.dart
+import '../controllers/matchingController.dart'; // Import MatchingController
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -17,9 +19,7 @@ class _HomePageState extends State<HomePage> {
 
  
   final List<Widget> _widgetOptions = <Widget>[
-    const Center(
-      child: Text('Index 0: Matching'),
-    ),
+    MatchingScreen(), // Display MatchingScreen when the tab is selected
     const ChatListScreen(), 
     const ProfilePage(), 
   ];
@@ -36,8 +36,11 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => ProfileController(),
+    return MultiProvider( // Use MultiProvider to provide both ProfileController and MatchingController
+      providers: [
+        ChangeNotifierProvider(create: (_) => ProfileController()),
+        ChangeNotifierProvider(create: (_) => MatchingController()),
+      ],
       child: Scaffold(
         appBar: AppBar(
           title: const Text('SeHati'),

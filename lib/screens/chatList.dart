@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../controllers/chatController.dart';
-import '../models/chat_models.dart'; // Import ChatContactModel
+import '../models/chat_models.dart';
 import 'chatRoom.dart';
 
 class ChatListScreen extends StatelessWidget {
@@ -42,15 +42,17 @@ class ChatListScreen extends StatelessWidget {
                     backgroundImage: NetworkImage(contact.imageUrl),
                   ),
                   title: Text(contact.name),
-                  // subtitle: Text(contact.latestMessage), // Temporarily removed as it's not fetched from Firestore yet
-                  // trailing: Text(contact.latestTimestamp), // Temporarily removed
+                  subtitle: Text(contact.latestMessage), // Re-enabled
+                  trailing: Text(contact.latestTimestamp), // Re-enabled
                   onTap: () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (context) => ChatRoomScreen(
+                          chatRoomId: contact.chatRoomId, // Pass chatRoomId
                           receiverId: contact.id, // Pass the receiver ID
                           receiverName: contact.name, // Pass the receiver name for AppBar title
+                          otherUser: contact.otherUser, // Pass the full otherUser object
                         ),
                       ),
                     );
