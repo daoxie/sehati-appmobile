@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'register.dart';
 import '/controllers/loginController.dart';
-import 'home.dart'; // Re-add import for HomePage
+import 'home.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});

@@ -1,15 +1,13 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
-import 'dart:io';
+import 'dart:convert';
 import 'package:image_picker/image_picker.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import '/models/chatModels.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class ChatController extends ChangeNotifier {
   final ImagePicker _picker = ImagePicker();
-  final FirebaseStorage _firebaseStorage = FirebaseStorage.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
@@ -125,7 +123,6 @@ class ChatController extends ChangeNotifier {
     String receiverId, {
     bool isImage = false,
   }) async {
-    // Updated to accept chatRoomId
     if (text.isEmpty) return;
 
     final String? senderId = _auth.currentUser?.uid;
@@ -142,6 +139,8 @@ class ChatController extends ChangeNotifier {
       'isImage': isImage,
     };
 
+    print('Sending message: isImage=$isImage, text length=${text.length}');
+
     // Add message to the specific chat room's messages subcollection
     await _firestore
         .collection('chatRooms')
@@ -150,18 +149,23 @@ class ChatController extends ChangeNotifier {
         .add(messageData);
 
     // Update lastMessage and lastMessageTime in the chatRoom document
+    // Untuk gambar, tampilkan "[Gambar]" bukan URL
     await _firestore.collection('chatRooms').doc(chatRoomId).set({
-      'lastMessage': text,
+      'lastMessage': isImage ? '[Gambar]' : text,
       'lastMessageTime': FieldValue.serverTimestamp(),
     }, SetOptions(merge: true));
+
+    print('Message sent successfully');
   }
+
+  bool _isUploading = false;
+  bool get isUploading => _isUploading;
 
   Future<void> _uploadImageAndSend(
     XFile? pickedFile,
     String chatRoomId,
     String receiverId,
   ) async {
-    // Updated
     if (pickedFile == null) return;
 
     final String? senderId = _auth.currentUser?.uid;
@@ -170,36 +174,41 @@ class ChatController extends ChangeNotifier {
       return;
     }
 
-    try {
-      final String fileName =
-          '${DateTime.now().millisecondsSinceEpoch}_${pickedFile.name}';
-      final Reference storageRef = _firebaseStorage
-          .ref()
-          .child('chat_images')
-          .child(senderId)
-          .child(fileName);
-      final UploadTask uploadTask = storageRef.putFile(File(pickedFile.path));
-      final TaskSnapshot snapshot = await uploadTask;
-      final String downloadUrl = await snapshot.ref.getDownloadURL();
+    _isUploading = true;
+    notifyListeners();
 
-      sendMessage(downloadUrl, chatRoomId, receiverId, isImage: true);
+    try {
+      // Baca gambar sebagai bytes dan konversi ke base64
+      final bytes = await pickedFile.readAsBytes();
+      final base64Image = base64Encode(bytes);
+
+      print('Image converted to base64, size: ${bytes.length} bytes');
+
+      // Kirim base64 sebagai pesan
+      sendMessage(base64Image, chatRoomId, receiverId, isImage: true);
+      print('Image message sent successfully');
     } catch (e) {
-      print('Error uploading image: $e');
+      print('Error processing image: $e');
+    } finally {
+      _isUploading = false;
+      notifyListeners();
     }
   }
 
   Future<void> pickAndSendImage(String chatRoomId, String receiverId) async {
-    // Updated
     final XFile? pickedFile = await _picker.pickImage(
       source: ImageSource.gallery,
+      imageQuality: 50, // Compress untuk ukuran lebih kecil
+      maxWidth: 800,
     );
     await _uploadImageAndSend(pickedFile, chatRoomId, receiverId);
   }
 
   Future<void> takeAndSendImage(String chatRoomId, String receiverId) async {
-    // Updated
     final XFile? pickedFile = await _picker.pickImage(
       source: ImageSource.camera,
+      imageQuality: 50, // Compress untuk ukuran lebih kecil
+      maxWidth: 800,
     );
     await _uploadImageAndSend(pickedFile, chatRoomId, receiverId);
   }

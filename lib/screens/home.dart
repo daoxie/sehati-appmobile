@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
 import 'profile.dart';
-import '../controllers/profileController.dart';
+import '/controllers/profileController.dart';
 import 'chatList.dart';
 import 'matchingScreen.dart';
-import '../controllers/matchingController.dart'; // Import MatchingController
-import '../controllers/chatController.dart'; // Import ChatController
+import '/controllers/matchingController.dart';
+import '/controllers/chatController.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});

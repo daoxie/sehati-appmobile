@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'dart:convert';
 import '/controllers/chatController.dart';
 import '/models/chatModels.dart';
 
@@ -131,7 +132,72 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                             borderRadius: BorderRadius.circular(15),
                           ),
                           child: message.isImage
-                              ? Image.network(message.text, width: 150)
+                              ? ClipRRect(
+                                  borderRadius: BorderRadius.circular(10),
+                                  child: Builder(
+                                    builder: (context) {
+                                      try {
+                                        return Image.memory(
+                                          base64Decode(message.text),
+                                          width: 200,
+                                          height: 200,
+                                          fit: BoxFit.cover,
+                                          errorBuilder:
+                                              (context, error, stackTrace) {
+                                                return Container(
+                                                  width: 200,
+                                                  height: 100,
+                                                  color: Colors.grey[200],
+                                                  child: const Column(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .center,
+                                                    children: [
+                                                      Icon(
+                                                        Icons.broken_image,
+                                                        size: 40,
+                                                        color: Colors.grey,
+                                                      ),
+                                                      SizedBox(height: 8),
+                                                      Text(
+                                                        'Gagal memuat gambar',
+                                                        style: TextStyle(
+                                                          color: Colors.grey,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                );
+                                              },
+                                        );
+                                      } catch (e) {
+                                        return Container(
+                                          width: 200,
+                                          height: 100,
+                                          color: Colors.grey[200],
+                                          child: const Column(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              Icon(
+                                                Icons.broken_image,
+                                                size: 40,
+                                                color: Colors.grey,
+                                              ),
+                                              SizedBox(height: 8),
+                                              Text(
+                                                'Format gambar tidak valid',
+                                                style: TextStyle(
+                                                  color: Colors.grey,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        );
+                                      }
+                                    },
+                                  ),
+                                )
                               : Text(message.text),
                         ),
                       ),

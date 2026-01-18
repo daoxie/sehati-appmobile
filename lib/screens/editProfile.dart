@@ -1,11 +1,7 @@
 import 'dart:convert';
-
-
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
-import '../controllers/profileController.dart';
+import '/controllers/profileController.dart';
 
 class EditProfilePage extends StatefulWidget {
   const EditProfilePage({super.key});
