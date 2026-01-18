@@ -1,10 +1,8 @@
-import 'dart:io';
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_storage/firebase_storage.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
@@ -12,7 +10,6 @@ import 'package:intl/intl.dart';
 class ProfileController extends ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final FirebaseStorage _storage = FirebaseStorage.instance;
 
   final TextEditingController nikController = TextEditingController();
   final TextEditingController nameController = TextEditingController();
@@ -87,7 +84,7 @@ class ProfileController extends ChangeNotifier {
 
   Future<void> pickImageFromGallery() async {
     final XFile? pickedFile = await _picker.pickImage(
-        source: ImageSource.gallery, imageQuality: 1, maxWidth: 600);
+        source: ImageSource.gallery, imageQuality: 40, maxWidth: 400);
     if (pickedFile != null) {
       _pickedXFile = pickedFile;
       notifyListeners();
@@ -96,7 +93,7 @@ class ProfileController extends ChangeNotifier {
 
   Future<void> pickImageFromCamera() async {
     final XFile? pickedFile = await _picker.pickImage(
-        source: ImageSource.camera, imageQuality: 1, maxWidth: 600);
+        source: ImageSource.camera, imageQuality: 40, maxWidth: 400);
     if (pickedFile != null) {
       _pickedXFile = pickedFile;
       notifyListeners();
@@ -126,21 +123,11 @@ class ProfileController extends ChangeNotifier {
     }
 
     try {
-      String? newImageUrl;
+      String? imageBase64;
 
       if (_pickedXFile != null) {
-        final ref = _storage.ref().child('profile_images').child('$uid.jpg');
-
-        if (kIsWeb) {
-          Uint8List imageBytes = await _pickedXFile!.readAsBytes();
-          await ref.putData(
-              imageBytes, SettableMetadata(contentType: 'image/jpeg'));
-        } else {
-          File file = File(_pickedXFile!.path);
-          await ref.putFile(file);
-        }
-
-        newImageUrl = await ref.getDownloadURL();
+        Uint8List imageBytes = await _pickedXFile!.readAsBytes();
+        imageBase64 = base64Encode(imageBytes);
       }
 
       Map<String, dynamic> userData = {
@@ -149,21 +136,19 @@ class ProfileController extends ChangeNotifier {
         'address': addressController.text,
         'dob': dobController.text,
         'gender': gender,
-        'imageUrl': newImageUrl ?? imageUrl,
       };
+
+      if (imageBase64 != null) {
+        userData['imageUrl'] = imageBase64;
+      }
 
       await _firestore.collection('users').doc(uid).update(userData);
 
       isLoading = false;
       errorMessage = null;
       return true;
-    } on FirebaseException catch (e) {
-      errorMessage = 'Error Firebase: ${e.message}';
-      print('Error saving profile: $e');
-      isLoading = false;
-      return false;
     } catch (e) {
-      errorMessage = 'Terjadi kesalahan tidak terduga: $e';
+      errorMessage = 'Terjadi kesalahan: $e';
       print('Error saving profile: $e');
       isLoading = false;
       return false;

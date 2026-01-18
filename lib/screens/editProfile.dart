@@ -1,8 +1,11 @@
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'dart:io'; 
+
 import '../controllers/profileController.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
 
 class EditProfilePage extends StatefulWidget {
   const EditProfilePage({super.key});
@@ -112,14 +115,35 @@ class EditProfilePageState extends State<EditProfilePage> {
                       children: [
                         CircleAvatar(
                           radius: 60,
-                          backgroundImage: controller.pickedXFile != null
-                              ? (kIsWeb
-                                  ? NetworkImage(controller.pickedXFile!.path)
-                                  : FileImage(File(controller.pickedXFile!.path))) as ImageProvider
-                              : (controller.imageUrl != null && controller.imageUrl!.isNotEmpty)
-                                  ? NetworkImage(controller.imageUrl!)
-                                  : const NetworkImage('https://www.gravatar.com/avatar/?d=mp')
-                                      as ImageProvider,
+                          backgroundImage: () {
+                            if (controller.pickedXFile != null) {
+                              if (kIsWeb) {
+                                return NetworkImage(
+                                    controller.pickedXFile!.path);
+                              } else {
+                                return FileImage(
+                                    File(controller.pickedXFile!.path));
+                              }
+                            }
+
+                            if (controller.imageUrl != null &&
+                                controller.imageUrl!.isNotEmpty) {
+                              try {
+                                if (controller.imageUrl!.startsWith('http')) {
+                                  return NetworkImage(controller.imageUrl!);
+                                } else {
+                                  return MemoryImage(
+                                      base64Decode(controller.imageUrl!));
+                                }
+                              } catch (e) {
+                                return const NetworkImage(
+                                    'https://www.gravatar.com/avatar/?d=mp');
+                              }
+                            }
+
+                            return const NetworkImage(
+                                'https://www.gravatar.com/avatar/?d=mp');
+                          }() as ImageProvider,
                         ),
                         const SizedBox(height: 12),
                         TextButton.icon(
@@ -137,7 +161,8 @@ class EditProfilePageState extends State<EditProfilePage> {
                     decoration: InputDecoration(
                       labelText: 'NIK',
                       prefixIcon: const Icon(Icons.credit_card),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8)),
                       filled: true,
                       fillColor: Colors.white,
                     ),
@@ -149,7 +174,8 @@ class EditProfilePageState extends State<EditProfilePage> {
                     decoration: InputDecoration(
                       labelText: 'Nama',
                       prefixIcon: const Icon(Icons.person),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8)),
                       filled: true,
                       fillColor: Colors.white,
                     ),
@@ -161,13 +187,15 @@ class EditProfilePageState extends State<EditProfilePage> {
                     decoration: InputDecoration(
                       labelText: 'Jenis Kelamin',
                       prefixIcon: const Icon(Icons.wc),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8)),
                       filled: true,
                       fillColor: Colors.white,
                     ),
                     hint: const Text('Pilih Jenis Kelamin'),
                     items: const ['Laki-laki', 'Perempuan']
-                        .map((value) => DropdownMenuItem(value: value, child: Text(value)))
+                        .map((value) =>
+                            DropdownMenuItem(value: value, child: Text(value)))
                         .toList(),
                     onChanged: (value) {
                       controller.gender = value;
@@ -182,7 +210,8 @@ class EditProfilePageState extends State<EditProfilePage> {
                     decoration: InputDecoration(
                       labelText: 'Tanggal Lahir',
                       prefixIcon: const Icon(Icons.calendar_today),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8)),
                       filled: true,
                       fillColor: Colors.white,
                     ),
@@ -195,7 +224,8 @@ class EditProfilePageState extends State<EditProfilePage> {
                     decoration: InputDecoration(
                       labelText: 'Alamat',
                       prefixIcon: const Icon(Icons.home),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8)),
                       filled: true,
                       fillColor: Colors.white,
                     ),
@@ -203,7 +233,9 @@ class EditProfilePageState extends State<EditProfilePage> {
                   ),
                   const SizedBox(height: 24),
                   ElevatedButton(
-                    onPressed: controller.isLoading ? null : () => _onSave(controller),
+                    onPressed: controller.isLoading
+                        ? null
+                        : () => _onSave(controller),
                     child: controller.isLoading
                         ? const CircularProgressIndicator(color: Colors.white)
                         : const Text('Simpan'),
