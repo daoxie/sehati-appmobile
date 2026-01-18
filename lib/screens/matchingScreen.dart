@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../controllers/matchingController.dart';
-import '../models/chatModels.dart';
+import '/controllers/matchingController.dart';
+import '/models/chatModels.dart';
 import 'chatRoom.dart';
 
 class MatchingScreen extends StatefulWidget {

@@ -35,14 +35,16 @@ class _LoginPageState extends State<LoginPage> {
 
     if (success) {
       // Re-add explicit navigation for robustness
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const HomePage()),
-      );
+      Navigator.of(
+        context,
+      ).pushReplacement(MaterialPageRoute(builder: (_) => const HomePage()));
     } else {
       // Display error message from controller
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(loginController.errorMessage ?? 'Terjadi kesalahan tidak dikenal.'),
+          content: Text(
+            loginController.errorMessage ?? 'Terjadi kesalahan tidak dikenal.',
+          ),
           backgroundColor: Colors.red,
         ),
       );
@@ -80,7 +82,29 @@ class _LoginPageState extends State<LoginPage> {
                             ),
                           ),
                           const SizedBox(height: 24),
-                          const FlutterLogo(size: 96),
+                          Center(
+                            child: Container(
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.3),
+                                    blurRadius: 20,
+                                    spreadRadius: 5,
+                                    offset: const Offset(0, 10),
+                                  ),
+                                ],
+                              ),
+                              child: ClipOval(
+                                child: Image.asset(
+                                  'asset/image/logoSHjpeg-removebg-preview.png',
+                                  width: 150,
+                                  height: 150,
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                            ),
+                          ),
                           const SizedBox(height: 24),
                           TextFormField(
                             controller: controller.usernameOrEmailController,
@@ -104,7 +128,9 @@ class _LoginPageState extends State<LoginPage> {
                               prefixIcon: const Icon(Icons.lock),
                               suffixIcon: IconButton(
                                 icon: Icon(
-                                  _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                                  _obscurePassword
+                                      ? Icons.visibility_off
+                                      : Icons.visibility,
                                 ),
                                 onPressed: () {
                                   setState(() {
@@ -123,7 +149,9 @@ class _LoginPageState extends State<LoginPage> {
                               backgroundColor: Colors.green[800],
                               foregroundColor: Colors.white,
                             ),
-                            onPressed: controller.isLoading ? null : () => _submitLogin(controller),
+                            onPressed: controller.isLoading
+                                ? null
+                                : () => _submitLogin(controller),
                             child: controller.isLoading
                                 ? const SizedBox(
                                     width: 18,
@@ -142,7 +170,9 @@ class _LoginPageState extends State<LoginPage> {
                             ),
                             onPressed: () {
                               Navigator.of(context).push(
-                                MaterialPageRoute(builder: (_) => const RegisterPage()),
+                                MaterialPageRoute(
+                                  builder: (_) => const RegisterPage(),
+                                ),
                               );
                             },
                             child: const Text('Belum punya akun? Daftar'),
