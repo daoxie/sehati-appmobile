@@ -8,6 +8,7 @@ class RegisterController extends ChangeNotifier {
 
   //input
   final TextEditingController nameController = TextEditingController();
+  final TextEditingController usernameController = TextEditingController(); // New
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController confirmController = TextEditingController();
@@ -30,20 +31,24 @@ class RegisterController extends ChangeNotifier {
   }
 
   //validasi username
-  String? validateUsername(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Username wajib diisi';
-    }
-    return null;
-  }
-
-  //validasi nama
   String? validateName(String? value) {
     if (value == null || value.isEmpty) {
       return 'Nama wajib diisi';
     }
     return null;
   }
+
+  //validasi username
+  String? validateUsername(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Username wajib diisi';
+    }
+    if (value.contains(' ')) {
+      return 'Username tidak boleh mengandung spasi';
+    }
+    return null;
+  }
+
 
   //validasi email
   String? validateEmail(String? value) {
@@ -92,6 +97,7 @@ class RegisterController extends ChangeNotifier {
         await _firestore.collection('users').doc(userCredential.user!.uid).set({
           'uid': userCredential.user!.uid,
           'name': nameController.text.trim(),
+          'username': usernameController.text.trim(), // Add username
           'email': emailController.text.trim(),
           'imageUrl': '',
         });

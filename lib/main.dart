@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'screens/login.dart';
-import 'screens/home.dart'; // Import HomePage
-import 'controllers/chatController.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'firebase_options.dart';
-import 'package:firebase_auth/firebase_auth.dart'; // Import FirebaseAuth
+import 'screens/login.dart';
+import 'screens/home.dart';
+import 'controllers/chatController.dart';
+import 'controllers/profileController.dart';
 
 void main() async { 
   WidgetsFlutterBinding.ensureInitialized();
@@ -15,8 +16,11 @@ void main() async {
   );
 
   runApp(
-    ChangeNotifierProvider(
-      create: (context) => ChatController(),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (context) => ChatController()),
+        ChangeNotifierProvider(create: (context) => ProfileController()),
+      ],
       child: const MyApp(),
     ),
   );
@@ -37,13 +41,11 @@ class MyApp extends StatelessWidget {
         stream: FirebaseAuth.instance.authStateChanges(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Scaffold(body: Center(child: CircularProgressIndicator())); // Or a splash screen
+            return const Scaffold(body: Center(child: CircularProgressIndicator())); 
           }
           if (snapshot.hasData) {
-            // User is logged in
             return const HomePage();
           }
-          // User is not logged in
           return const LoginPage();
         },
       ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '/controllers/registerController.dart';
+import 'login.dart'; // Import LoginPage
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -35,7 +36,9 @@ class _RegisterPageState extends State<RegisterPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Registrasi berhasil')),
       );
-      Navigator.of(context).pop();
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => const LoginPage()),
+      );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -83,6 +86,20 @@ class _RegisterPageState extends State<RegisterPage> {
                               fillColor: Colors.white,
                             ),
                             validator: controller.validateName,
+                          ),
+
+                          const SizedBox(height: 12),
+
+                          TextFormField(
+                            controller: controller.usernameController,
+                            decoration: const InputDecoration(
+                              labelText: 'Username',
+                              border: OutlineInputBorder(),
+                              prefixIcon: Icon(Icons.person_outline),
+                              filled: true,
+                              fillColor: Colors.white,
+                            ),
+                            validator: controller.validateUsername,
                           ),
 
                           const SizedBox(height: 12),

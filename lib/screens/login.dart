@@ -83,16 +83,16 @@ class _LoginPageState extends State<LoginPage> {
                           const FlutterLogo(size: 96),
                           const SizedBox(height: 24),
                           TextFormField(
-                            controller: controller.emailController,
+                            controller: controller.usernameOrEmailController,
                             keyboardType: TextInputType.text,
                             decoration: const InputDecoration(
-                              labelText: 'Username',
+                              labelText: 'Username or Email',
                               border: OutlineInputBorder(),
                               prefixIcon: Icon(Icons.person),
                               filled: true,
                               fillColor: Colors.white,
                             ),
-                            validator: controller.validateUsername,
+                            validator: controller.validateUsernameOrEmail,
                           ),
                           const SizedBox(height: 12),
                           TextFormField(

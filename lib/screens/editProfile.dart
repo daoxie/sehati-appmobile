@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'dart:io';
+import 'dart:io'; 
 import '../controllers/profileController.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 class EditProfilePage extends StatefulWidget {
   const EditProfilePage({super.key});
@@ -13,8 +14,23 @@ class EditProfilePage extends StatefulWidget {
 class EditProfilePageState extends State<EditProfilePage> {
   final _formKey = GlobalKey<FormState>();
 
-  // The listener for image changes is now handled by the Consumer rebuilding.
-  // We can remove manual initState/dispose logic for the callback.
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final controller = Provider.of<ProfileController>(context, listen: false);
+      controller.loadProfileData().then((_) {
+        if (controller.errorMessage != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(controller.errorMessage!),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      });
+    });
+  }
 
   void _showImagePickerOption(ProfileController controller) {
     showModalBottomSheet(
@@ -68,8 +84,8 @@ class EditProfilePageState extends State<EditProfilePage> {
       Navigator.pop(context);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Gagal menyimpan profil.'),
+        SnackBar(
+          content: Text(controller.errorMessage ?? 'Gagal menyimpan profil.'),
           backgroundColor: Colors.red,
         ),
       );
@@ -78,7 +94,6 @@ class EditProfilePageState extends State<EditProfilePage> {
 
   @override
   Widget build(BuildContext context) {
-    // We wrap the whole build method with Consumer to access the controller
     return Consumer<ProfileController>(
       builder: (context, controller, child) {
         return Scaffold(
@@ -97,14 +112,14 @@ class EditProfilePageState extends State<EditProfilePage> {
                       children: [
                         CircleAvatar(
                           radius: 60,
-                          backgroundImage: controller.imageFile != null
-                              ? FileImage(controller.imageFile!)
-                              // If no new file, show the existing URL from the controller
+                          backgroundImage: controller.pickedXFile != null
+                              ? (kIsWeb
+                                  ? NetworkImage(controller.pickedXFile!.path)
+                                  : FileImage(File(controller.pickedXFile!.path))) as ImageProvider
                               : (controller.imageUrl != null && controller.imageUrl!.isNotEmpty)
-                                ? NetworkImage(controller.imageUrl!)
-                                // Fallback placeholder
-                                : const NetworkImage('https://www.gravatar.com/avatar/?d=mp')
-                                  as ImageProvider,
+                                  ? NetworkImage(controller.imageUrl!)
+                                  : const NetworkImage('https://www.gravatar.com/avatar/?d=mp')
+                                      as ImageProvider,
                         ),
                         const SizedBox(height: 12),
                         TextButton.icon(
@@ -155,7 +170,6 @@ class EditProfilePageState extends State<EditProfilePage> {
                         .map((value) => DropdownMenuItem(value: value, child: Text(value)))
                         .toList(),
                     onChanged: (value) {
-                      // No need for setState, just update the controller property
                       controller.gender = value;
                     },
                     validator: controller.validateGender,

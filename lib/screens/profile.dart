@@ -71,6 +71,7 @@ class ProfilePage extends StatelessWidget {
                       profileController.addressController.text = userData['address'] ?? '';
                       profileController.dobController.text = userData['dob'] ?? '';
                       profileController.gender = userData['gender'];
+                      profileController.imageUrl = userData['imageUrl']; // Pass existing image URL
                       
                       Navigator.push(
                         context,
@@ -83,7 +84,39 @@ class ProfilePage extends StatelessWidget {
                     child: const Text('Edit Profile'),
                   ),
                   const SizedBox(height: 32),
-                  // ... (rest of the widgets like 'Premium' card)
+                  Card(
+                    margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Upgrade to Premium',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          const Text(
+                            'Unlock exclusive features and enhance your experience!',
+                            style: TextStyle(fontSize: 14),
+                          ),
+                          const SizedBox(height: 16),
+                          ElevatedButton(
+                            onPressed: () {
+                              // TODO: Implement navigation to upgrade screen
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Go to Upgrade Screen')),
+                              );
+                            },
+                            child: const Text('Learn More'),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
