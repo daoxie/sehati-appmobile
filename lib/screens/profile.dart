@@ -17,7 +17,10 @@ class ProfilePage extends StatelessWidget {
     }
 
     return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-      stream: FirebaseFirestore.instance.collection('users').doc(user.uid).snapshots(),
+      stream: FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .snapshots(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
@@ -34,9 +37,7 @@ class ProfilePage extends StatelessWidget {
         final String? imageUrl = userData['imageUrl'];
 
         return Scaffold(
-          appBar: AppBar(
-            title: const Text('Profil Pengguna'),
-          ),
+          appBar: AppBar(title: const Text('Profil Pengguna')),
           body: Consumer<ProfileController>(
             builder: (context, profileController, child) {
               return SingleChildScrollView(
@@ -47,20 +48,28 @@ class ProfilePage extends StatelessWidget {
                     children: [
                       CircleAvatar(
                         radius: 60,
-                        backgroundImage: () {
-                          if (imageUrl != null && imageUrl.isNotEmpty) {
-                            try {
-                              if (imageUrl.startsWith('http')) {
-                                return NetworkImage(imageUrl);
-                              } else {
-                                return MemoryImage(base64Decode(imageUrl));
-                              }
-                            } catch (e) {
-                              return const NetworkImage('https://www.gravatar.com/avatar/205e460b479e2e5b48aec07710c08d50?s=200');
-                            }
-                          }
-                          return const NetworkImage('https://www.gravatar.com/avatar/205e460b479e2e5b48aec07710c08d50?s=200');
-                        }() as ImageProvider,
+                        backgroundImage:
+                            () {
+                                  if (imageUrl != null && imageUrl.isNotEmpty) {
+                                    try {
+                                      if (imageUrl.startsWith('http')) {
+                                        return NetworkImage(imageUrl);
+                                      } else {
+                                        return MemoryImage(
+                                          base64Decode(imageUrl),
+                                        );
+                                      }
+                                    } catch (e) {
+                                      return const NetworkImage(
+                                        'https://www.gravatar.com/avatar/205e460b479e2e5b48aec07710c08d50?s=200',
+                                      );
+                                    }
+                                  }
+                                  return const NetworkImage(
+                                    'https://www.gravatar.com/avatar/205e460b479e2e5b48aec07710c08d50?s=200',
+                                  );
+                                }()
+                                as ImageProvider,
                       ),
                       const SizedBox(height: 16),
                       Text(
@@ -74,16 +83,23 @@ class ProfilePage extends StatelessWidget {
                       ElevatedButton(
                         onPressed: () {
                           // Prefill the controller with current data before navigating
-                          profileController.nameController.text = userData['name'] ?? '';
-                          profileController.nikController.text = userData['nik'] ?? '';
-                          profileController.addressController.text = userData['address'] ?? '';
-                          profileController.dobController.text = userData['dob'] ?? '';
+                          profileController.nameController.text =
+                              userData['name'] ?? '';
+                          profileController.nikController.text =
+                              userData['nik'] ?? '';
+                          profileController.addressController.text =
+                              userData['address'] ?? '';
+                          profileController.dobController.text =
+                              userData['dob'] ?? '';
                           profileController.gender = userData['gender'];
-                          profileController.searchGender = userData['searchGender'];
-                          profileController.minAgeController.text = (userData['minAge'] ?? '').toString();
-                          profileController.maxAgeController.text = (userData['maxAge'] ?? '').toString();
+                          profileController.searchGender =
+                              userData['searchGender'];
+                          profileController.minAgeController.text =
+                              (userData['minAge'] ?? '').toString();
+                          profileController.maxAgeController.text =
+                              (userData['maxAge'] ?? '').toString();
                           profileController.imageUrl = userData['imageUrl'];
-                          
+
                           Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -93,17 +109,28 @@ class ProfilePage extends StatelessWidget {
                         },
                         child: const Text('Edit Profile'),
                       ),
-                      const SizedBox(height: 16), // Add spacing before new cards
+                      const SizedBox(
+                        height: 16,
+                      ), // Add spacing before new cards
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
-                          _buildStatCard('Likes Diberikan', profileController.likesGivenCount),
-                          _buildStatCard('Likes Diterima', profileController.likesReceivedCount),
+                          _buildStatCard(
+                            'Likes Diberikan',
+                            profileController.likesGivenCount,
+                          ),
+                          _buildStatCard(
+                            'Likes Diterima',
+                            profileController.likesReceivedCount,
+                          ),
                         ],
                       ),
                       const SizedBox(height: 32),
                       Card(
-                        margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                        margin: const EdgeInsets.symmetric(
+                          horizontal: 16.0,
+                          vertical: 8.0,
+                        ),
                         child: Padding(
                           padding: const EdgeInsets.all(16.0),
                           child: Column(
@@ -125,13 +152,64 @@ class ProfilePage extends StatelessWidget {
                               ElevatedButton(
                                 onPressed: () {
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('Go to Upgrade Screen')),
+                                    const SnackBar(
+                                      content: Text('Go to Upgrade Screen'),
+                                    ),
                                   );
                                 },
                                 child: const Text('Learn More'),
                               ),
                             ],
                           ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      // Tombol Keluar
+                      Card(
+                        margin: const EdgeInsets.symmetric(
+                          horizontal: 16.0,
+                          vertical: 8.0,
+                        ),
+                        color: Colors.red[50],
+                        child: ListTile(
+                          leading: const Icon(Icons.logout, color: Colors.red),
+                          title: const Text(
+                            'Keluar',
+                            style: TextStyle(
+                              color: Colors.red,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          onTap: () async {
+                            // Konfirmasi logout
+                            final confirm = await showDialog<bool>(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                title: const Text('Konfirmasi'),
+                                content: const Text(
+                                  'Yakin ingin keluar dari akun?',
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () =>
+                                        Navigator.pop(context, false),
+                                    child: const Text('Batal'),
+                                  ),
+                                  TextButton(
+                                    onPressed: () =>
+                                        Navigator.pop(context, true),
+                                    style: TextButton.styleFrom(
+                                      foregroundColor: Colors.red,
+                                    ),
+                                    child: const Text('Keluar'),
+                                  ),
+                                ],
+                              ),
+                            );
+                            if (confirm == true) {
+                              await FirebaseAuth.instance.signOut();
+                            }
+                          },
                         ),
                       ),
                     ],
