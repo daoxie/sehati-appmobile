@@ -12,7 +12,8 @@ class MatchingScreen extends StatefulWidget {
   State<MatchingScreen> createState() => _MatchingScreenState();
 }
 
-class _MatchingScreenState extends State<MatchingScreen> with SingleTickerProviderStateMixin {
+class _MatchingScreenState extends State<MatchingScreen>
+    with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<Alignment> _animation;
   Alignment _dragAlignment = Alignment.center;
@@ -33,7 +34,7 @@ class _MatchingScreenState extends State<MatchingScreen> with SingleTickerProvid
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final controller = context.read<MatchingController>();
       controller.loadProfiles();
-      
+
       // Setup listener untuk Match Found
       controller.onMatchFound = () {
         if (!mounted) return;
@@ -44,8 +45,8 @@ class _MatchingScreenState extends State<MatchingScreen> with SingleTickerProvid
           showDialog(
             context: context,
             builder: (context) => AlertDialog(
-              title: const Text("It's a Match! 🎉"),
-              content: Text("Kamu cocok dengan ${matchedUser.username}!"),
+              title: const Text("AYO CHATTING🎉"),
+              content: Text("Kamu cocok dengan ${matchedUser.username}?"),
               actions: [
                 TextButton(
                   onPressed: () {
@@ -94,10 +95,7 @@ class _MatchingScreenState extends State<MatchingScreen> with SingleTickerProvid
 
   void _runAnimation(Offset pixelsPerSecond, Size size) {
     _animation = _animationController.drive(
-      AlignmentTween(
-        begin: _dragAlignment,
-        end: Alignment.center,
-      ),
+      AlignmentTween(begin: _dragAlignment, end: Alignment.center),
     );
     _animationController.reset();
     _animationController.forward();
@@ -110,8 +108,8 @@ class _MatchingScreenState extends State<MatchingScreen> with SingleTickerProvid
         details.delta.dy / (_screenSize.height / 2),
       );
 
-      _rotation = -_dragAlignment.x * 0.2; // Max rotation 20 degrees
-      _opacity = 1 - (_dragAlignment.x.abs() + _dragAlignment.y.abs()) / 2; // Fade out
+      _rotation = -_dragAlignment.x * 0.2;
+      _opacity = 1 - (_dragAlignment.x.abs() + _dragAlignment.y.abs()) / 2;
 
       if (_opacity < 0) _opacity = 0;
     });
@@ -120,11 +118,12 @@ class _MatchingScreenState extends State<MatchingScreen> with SingleTickerProvid
   void _onPanEnd(DragEndDetails details) {
     final controller = context.read<MatchingController>();
     if (controller.profiles.isEmpty) return;
-    
+
     final ChatUser currentProfile = controller.profiles.first;
     const double swipeThreshold = 0.4;
 
-    if (_dragAlignment.x.abs() > swipeThreshold || _dragAlignment.y.abs() > swipeThreshold) {
+    if (_dragAlignment.x.abs() > swipeThreshold ||
+        _dragAlignment.y.abs() > swipeThreshold) {
       // Swiped far enough
       _animation = _animationController.drive(
         AlignmentTween(
@@ -164,15 +163,16 @@ class _MatchingScreenState extends State<MatchingScreen> with SingleTickerProvid
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.green[50], // Background hijau muda
       body: Consumer<MatchingController>(
         builder: (context, controller, child) {
           if (controller.isLoading) {
             return const Center(child: CircularProgressIndicator());
           }
 
-          // Tampilkan error hanya jika bukan pesan "It's a Match" (karena itu ditangani dialog)
-          if (controller.errorMessage != null && 
-              !controller.errorMessage!.startsWith("It's a Match") && 
+          //Tampilkan error hanya jika bukan pesan "It's a Match" (karena itu ditangani dialog)
+          if (controller.errorMessage != null &&
+              !controller.errorMessage!.startsWith("It's a Match") &&
               controller.profiles.isEmpty) {
             return Center(
               child: Padding(
@@ -180,7 +180,11 @@ class _MatchingScreenState extends State<MatchingScreen> with SingleTickerProvid
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.error_outline, size: 48, color: Colors.grey),
+                    const Icon(
+                      Icons.error_outline,
+                      size: 48,
+                      color: Colors.grey,
+                    ),
                     const SizedBox(height: 16),
                     Text(
                       controller.errorMessage!,
@@ -191,7 +195,7 @@ class _MatchingScreenState extends State<MatchingScreen> with SingleTickerProvid
                     ElevatedButton(
                       onPressed: () => controller.loadProfiles(),
                       child: const Text('Coba Lagi'),
-                    )
+                    ),
                   ],
                 ),
               ),
@@ -216,7 +220,7 @@ class _MatchingScreenState extends State<MatchingScreen> with SingleTickerProvid
                     ),
                   ),
                 ),
-              
+
               // Kartu saat ini (di depan, bisa digeser)
               Align(
                 alignment: _animationController.isAnimating
@@ -254,7 +258,11 @@ class _MatchingScreenState extends State<MatchingScreen> with SingleTickerProvid
                           controller.swipeLeft(controller.profiles.first.uid);
                           _resetCardPosition();
                         },
-                        child: const Icon(Icons.close, color: Colors.red, size: 32),
+                        child: const Icon(
+                          Icons.close,
+                          color: Colors.red,
+                          size: 32,
+                        ),
                       ),
                       FloatingActionButton(
                         heroTag: 'like',
@@ -263,7 +271,11 @@ class _MatchingScreenState extends State<MatchingScreen> with SingleTickerProvid
                           controller.swipeRight(controller.profiles.first.uid);
                           _resetCardPosition();
                         },
-                        child: const Icon(Icons.favorite, color: Colors.green, size: 32),
+                        child: const Icon(
+                          Icons.favorite,
+                          color: Colors.green,
+                          size: 32,
+                        ),
                       ),
                     ],
                   ),
@@ -279,9 +291,7 @@ class _MatchingScreenState extends State<MatchingScreen> with SingleTickerProvid
   Widget _buildCard(ChatUser user) {
     return Card(
       elevation: 8,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       clipBehavior: Clip.antiAlias,
       child: Stack(
         fit: StackFit.expand,
@@ -294,7 +304,7 @@ class _MatchingScreenState extends State<MatchingScreen> with SingleTickerProvid
               color: Colors.grey[300],
               child: const Icon(Icons.person, size: 100, color: Colors.white),
             ),
-          
+
           // Gradient Overlay untuk teks
           Positioned(
             bottom: 0,
@@ -306,10 +316,7 @@ class _MatchingScreenState extends State<MatchingScreen> with SingleTickerProvid
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.transparent,
-                    Colors.black.withOpacity(0.8),
-                  ],
+                  colors: [Colors.transparent, Colors.black.withOpacity(0.8)],
                 ),
               ),
               child: Column(
@@ -326,14 +333,20 @@ class _MatchingScreenState extends State<MatchingScreen> with SingleTickerProvid
                   if (user.gender != null)
                     Text(
                       user.gender!,
-                      style: const TextStyle(color: Colors.white70, fontSize: 16),
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 16,
+                      ),
                     ),
                   if (user.bio != null)
                     Text(
                       user.bio!,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(color: Colors.white70, fontSize: 14),
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 14,
+                      ),
                     ),
                 ],
               ),

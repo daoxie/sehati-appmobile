@@ -18,11 +18,10 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
 
- 
   final List<Widget> _widgetOptions = <Widget>[
     MatchingScreen(), // Display MatchingScreen when the tab is selected
-    const ChatListScreen(), 
-    const ProfilePage(), 
+    const ChatListScreen(),
+    const ProfilePage(),
   ];
 
   void _onItemTapped(int index) {
@@ -37,22 +36,36 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-
-    return MultiProvider( 
+    return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => MatchingController()),
-        ChangeNotifierProvider(create: (_) => ChatController()), // Tambahkan ChatController
-        ChangeNotifierProvider(create: (_) => ProfileController()), // Tambahkan ProfileController agar data termuat
+        ChangeNotifierProvider(
+          create: (_) => ChatController(),
+        ), // Tambahkan ChatController
+        ChangeNotifierProvider(
+          create: (_) => ProfileController(),
+        ), // Tambahkan ProfileController agar data termuat
       ],
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('SeHati'),
+          title: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ClipOval(
+                child: Image.asset(
+                  'asset/image/logoSHjpeg-removebg-preview.png',
+                  width: 32,
+                  height: 32,
+                  fit: BoxFit.cover,
+                ),
+              ),
+              const SizedBox(width: 8),
+              const Text('SeHati'),
+            ],
+          ),
           backgroundColor: Colors.green,
           actions: [
-            IconButton(
-              icon: const Icon(Icons.logout),
-              onPressed: _logout,
-            ),
+            IconButton(icon: const Icon(Icons.logout), onPressed: _logout),
           ],
         ),
         body: _widgetOptions.elementAt(_selectedIndex),
@@ -62,14 +75,8 @@ class _HomePageState extends State<HomePage> {
               icon: Icon(Icons.favorite),
               label: 'Matching',
             ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.message),
-              label: 'Pesan',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.person),
-              label: 'Profile',
-            ),
+            BottomNavigationBarItem(icon: Icon(Icons.message), label: 'Pesan'),
+            BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
           ],
           currentIndex: _selectedIndex,
           selectedItemColor: Colors.green,
