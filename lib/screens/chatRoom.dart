@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../controllers/chatController.dart';
-import '../models/chat_models.dart';
+import '/controllers/chatController.dart';
+import '/models/chatModels.dart';
 
 class ChatRoomScreen extends StatefulWidget {
   final String chatRoomId;
@@ -34,18 +34,24 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
         backgroundColor: Colors.green,
         actions: [
           IconButton(
-            icon: const Icon(Icons.image),
-            onPressed: () => chatController.pickAndSendImage(
-              widget.chatRoomId,
-              widget.receiverId,
-            ),
+            icon: const Icon(Icons.call),
+            tooltip: 'Panggilan Suara',
+            onPressed: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Fitur panggilan suara segera hadir!'),
+                ),
+              );
+            },
           ),
           IconButton(
-            icon: const Icon(Icons.camera_alt),
-            onPressed: () => chatController.takeAndSendImage(
-              widget.chatRoomId,
-              widget.receiverId,
-            ),
+            icon: const Icon(Icons.videocam),
+            tooltip: 'Video Call',
+            onPressed: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Fitur video call segera hadir!')),
+              );
+            },
           ),
         ],
       ),
@@ -72,21 +78,62 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                   itemCount: messages.length,
                   itemBuilder: (context, index) {
                     final message = messages[index];
-                    return Align(
-                      alignment: message.isSentByMe
-                          ? Alignment.centerRight
-                          : Alignment.centerLeft,
-                      child: Container(
-                        margin: const EdgeInsets.symmetric(
-                            vertical: 5, horizontal: 10),
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: message.isSentByMe ? Colors.blue[100] : Colors.grey[300],
-                          borderRadius: BorderRadius.circular(15),
+                    return GestureDetector(
+                      onLongPress: () {
+                        showDialog(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: const Text('Hapus Pesan'),
+                            content: const Text(
+                              'Yakin ingin menghapus pesan ini?',
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context),
+                                child: const Text('Batal'),
+                              ),
+                              TextButton(
+                                onPressed: () {
+                                  chatController.deleteMessage(
+                                    widget.chatRoomId,
+                                    message.messageId,
+                                  );
+                                  Navigator.pop(context);
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Pesan dihapus'),
+                                    ),
+                                  );
+                                },
+                                style: TextButton.styleFrom(
+                                  foregroundColor: Colors.red,
+                                ),
+                                child: const Text('Hapus'),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                      child: Align(
+                        alignment: message.isSentByMe
+                            ? Alignment.centerRight
+                            : Alignment.centerLeft,
+                        child: Container(
+                          margin: const EdgeInsets.symmetric(
+                            vertical: 5,
+                            horizontal: 10,
+                          ),
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: message.isSentByMe
+                                ? Colors.blue[100]
+                                : Colors.grey[300],
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          child: message.isImage
+                              ? Image.network(message.text, width: 150)
+                              : Text(message.text),
                         ),
-                        child: message.isImage
-                            ? Image.network(message.text, width: 150)
-                            : Text(message.text),
                       ),
                     );
                   },
@@ -108,7 +155,23 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.send),
+                  icon: const Icon(Icons.image),
+                  tooltip: 'Kirim Gambar',
+                  onPressed: () => chatController.pickAndSendImage(
+                    widget.chatRoomId,
+                    widget.receiverId,
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.camera_alt),
+                  tooltip: 'Ambil Foto',
+                  onPressed: () => chatController.takeAndSendImage(
+                    widget.chatRoomId,
+                    widget.receiverId,
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.send, color: Colors.green),
                   onPressed: () {
                     chatController.sendMessage(
                       _messageController.text,

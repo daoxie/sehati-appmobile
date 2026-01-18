@@ -4,8 +4,9 @@ import 'package:provider/provider.dart';
 import 'profile.dart';
 import '../controllers/profileController.dart';
 import 'chatList.dart';
-import 'matching_screen.dart'; // Corrected import to matching_screen.dart
+import 'matchingScreen.dart';
 import '../controllers/matchingController.dart'; // Import MatchingController
+import '../controllers/chatController.dart'; // Import ChatController
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -36,10 +37,12 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return MultiProvider( // Use MultiProvider to provide both ProfileController and MatchingController
+
+    return MultiProvider( 
       providers: [
-        ChangeNotifierProvider(create: (_) => ProfileController()),
         ChangeNotifierProvider(create: (_) => MatchingController()),
+        ChangeNotifierProvider(create: (_) => ChatController()), // Tambahkan ChatController
+        ChangeNotifierProvider(create: (_) => ProfileController()), // Tambahkan ProfileController agar data termuat
       ],
       child: Scaffold(
         appBar: AppBar(

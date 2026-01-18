@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../controllers/chatController.dart';
-import '../models/chat_models.dart';
+import '/controllers/chatController.dart';
+import '/models/chatModels.dart';
 import 'chatRoom.dart';
 
 class ChatListScreen extends StatelessWidget {
@@ -12,10 +12,7 @@ class ChatListScreen extends StatelessWidget {
     final chatController = Provider.of<ChatController>(context);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Pesan'),
-        backgroundColor: Colors.green,
-      ),
+      appBar: AppBar(title: const Text('Pesan'), backgroundColor: Colors.green),
       body: StreamBuilder<List<ChatContactModel>>(
         stream: chatController.getChatContacts(),
         builder: (context, snapshot) {
@@ -26,7 +23,9 @@ class ChatListScreen extends StatelessWidget {
             return Center(child: Text('Error: ${snapshot.error}'));
           }
           if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text('Tidak ada kontak untuk ditampilkan.'));
+            return const Center(
+              child: Text('Tidak ada kontak untuk ditampilkan.'),
+            );
           }
 
           final chatContacts = snapshot.data!;
@@ -36,23 +35,72 @@ class ChatListScreen extends StatelessWidget {
             itemBuilder: (context, index) {
               final contact = chatContacts[index];
               return Card(
-                margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                margin: const EdgeInsets.symmetric(
+                  horizontal: 8.0,
+                  vertical: 4.0,
+                ),
                 child: ListTile(
                   leading: CircleAvatar(
                     backgroundImage: NetworkImage(contact.imageUrl),
                   ),
                   title: Text(contact.name),
-                  subtitle: Text(contact.latestMessage), // Re-enabled
-                  trailing: Text(contact.latestTimestamp), // Re-enabled
+                  subtitle: Text(contact.latestMessage),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(contact.latestTimestamp),
+                      const SizedBox(width: 8),
+                      IconButton(
+                        icon: const Icon(Icons.delete, color: Colors.red),
+                        onPressed: () {
+                          showDialog(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              title: const Text('Hapus Chat'),
+                              content: Text(
+                                'Yakin ingin menghapus chat dengan ${contact.name}? Semua pesan akan dihapus.',
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  child: const Text('Batal'),
+                                ),
+                                TextButton(
+                                  onPressed: () {
+                                    chatController.deleteChat(
+                                      contact.chatRoomId,
+                                      contact.id,
+                                    );
+                                    Navigator.pop(context);
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          'Chat dengan ${contact.name} dihapus',
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                  style: TextButton.styleFrom(
+                                    foregroundColor: Colors.red,
+                                  ),
+                                  child: const Text('Hapus'),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
                   onTap: () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (context) => ChatRoomScreen(
-                          chatRoomId: contact.chatRoomId, // Pass chatRoomId
-                          receiverId: contact.id, // Pass the receiver ID
-                          receiverName: contact.name, // Pass the receiver name for AppBar title
-                          otherUser: contact.otherUser, // Pass the full otherUser object
+                          chatRoomId: contact.chatRoomId,
+                          receiverId: contact.id,
+                          receiverName: contact.name,
+                          otherUser: contact.otherUser,
                         ),
                       ),
                     );

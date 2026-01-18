@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -32,6 +33,19 @@ class ProfileController extends ChangeNotifier {
   int get likesReceivedCount => _likesReceivedCount;
 
   final ImagePicker _picker = ImagePicker();
+
+  StreamSubscription<QuerySnapshot>? _likesGivenSub;
+  StreamSubscription<QuerySnapshot>? _likesReceivedSub;
+
+  ProfileController() {
+    // Otomatis memuat data saat controller dibuat atau status login berubah
+    if (_auth.currentUser != null) {
+      loadProfileData();
+    }
+    _auth.authStateChanges().listen((user) {
+      if (user != null) loadProfileData();
+    });
+  }
 
   String? validateNIK(String? value) {
     if (value == null || value.isEmpty) {
@@ -107,9 +121,7 @@ class ProfileController extends ChangeNotifier {
       builder: (context, child) {
         return Theme(
           data: ThemeData.light().copyWith(
-            colorScheme: const ColorScheme.light(
-              primary: Colors.green,
-            ),
+            colorScheme: const ColorScheme.light(primary: Colors.green),
           ),
           child: child!,
         );
@@ -123,7 +135,10 @@ class ProfileController extends ChangeNotifier {
 
   Future<void> pickImageFromGallery() async {
     final XFile? pickedFile = await _picker.pickImage(
-        source: ImageSource.gallery, imageQuality: 40, maxWidth: 400);
+      source: ImageSource.gallery,
+      imageQuality: 40,
+      maxWidth: 400,
+    );
     if (pickedFile != null) {
       _pickedImageBytes = await pickedFile.readAsBytes();
       notifyListeners();
@@ -132,7 +147,10 @@ class ProfileController extends ChangeNotifier {
 
   Future<void> pickImageFromCamera() async {
     final XFile? pickedFile = await _picker.pickImage(
-        source: ImageSource.camera, imageQuality: 40, maxWidth: 400);
+      source: ImageSource.camera,
+      imageQuality: 40,
+      maxWidth: 400,
+    );
     if (pickedFile != null) {
       _pickedImageBytes = await pickedFile.readAsBytes();
       notifyListeners();
@@ -183,7 +201,11 @@ class ProfileController extends ChangeNotifier {
         userData['imageUrl'] = imageBase64;
       }
 
-      await _firestore.collection('users').doc(uid).update(userData);
+      // Gunakan set dengan merge: true agar tidak error jika dokumen belum ada atau data parsial
+      await _firestore
+          .collection('users')
+          .doc(uid)
+          .set(userData, SetOptions(merge: true));
 
       isLoading = false;
       errorMessage = null;
@@ -218,7 +240,9 @@ class ProfileController extends ChangeNotifier {
         maxAgeController.text = (data['maxAge'] ?? '').toString();
         imageUrl = data['imageUrl'];
         errorMessage = null;
-        await _fetchLikeCounts(uid); // Fetch like counts
+        _startListeningToLikeCounts(
+          uid,
+        ); // Mulai dengarkan data like secara realtime
         notifyListeners(); // Notify UI of loaded data
       } else {
         errorMessage = 'Profil pengguna tidak ditemukan.';
@@ -234,33 +258,45 @@ class ProfileController extends ChangeNotifier {
     }
   }
 
-  // Fetch like counts
-  Future<void> _fetchLikeCounts(String userId) async {
-    try {
-      // Likes given by current user
-      final QuerySnapshot likesGivenSnapshot = await _firestore.collection('users').doc(userId).collection('likes').get();
-      _likesGivenCount = likesGivenSnapshot.docs.length;
+  // Realtime Listener untuk Like
+  void _startListeningToLikeCounts(String userId) {
+    // Batalkan listener lama jika ada
+    _likesGivenSub?.cancel();
+    _likesReceivedSub?.cancel();
 
-      // Likes received by current user (this is a more expensive query)
-      // This requires querying all users' 'likes' subcollections, which is not scalable.
-      // A better approach would be to maintain a counter on the user document itself,
-      // or use a Cloud Function to update this.
-      // For now, a simplified approach assuming a manageable number of users.
-      int receivedCount = 0;
-      final QuerySnapshot allUsersSnapshot = await _firestore.collection('users').get();
-      for (var userDoc in allUsersSnapshot.docs) {
-        if (userDoc.id == userId) continue; // Don't check self
-        final DocumentSnapshot receivedLikeSnapshot = await _firestore.collection('users').doc(userDoc.id).collection('likes').doc(userId).get();
-        if (receivedLikeSnapshot.exists) {
-          receivedCount++;
-        }
-      }
-      _likesReceivedCount = receivedCount;
-      notifyListeners();
-    } catch (e) {
-      print('Error fetching like counts: $e');
-      // Optionally set an error message
-    }
+    // 1. Listen Likes Given (Yang kita like)
+    _likesGivenSub = _firestore
+        .collection('users')
+        .doc(userId)
+        .collection('swipes')
+        .where('liked', isEqualTo: true)
+        .snapshots()
+        .listen((snapshot) {
+          _likesGivenCount = snapshot.docs.length;
+          notifyListeners();
+        });
+
+    // 2. Listen Likes Received (Yang like kita)
+    // Menggunakan collectionGroup untuk mencari di seluruh database siapa yang swipe kita
+    _likesReceivedSub = _firestore
+        .collectionGroup('swipes')
+        .where(
+          'targetUserId',
+          isEqualTo: userId,
+        ) // Cari dokumen dimana targetUserId adalah kita (artinya kita yang di-swipe)
+        .where('liked', isEqualTo: true)
+        .snapshots()
+        .listen(
+          (snapshot) {
+            _likesReceivedCount = snapshot.docs.length;
+            notifyListeners();
+          },
+          onError: (e) {
+            print(
+              'Error listening to received likes (Mungkin butuh Index Firestore): $e',
+            );
+          },
+        );
   }
 
   void clearAllExceptName() {
@@ -284,6 +320,8 @@ class ProfileController extends ChangeNotifier {
     dobController.dispose();
     minAgeController.dispose();
     maxAgeController.dispose();
+    _likesGivenSub?.cancel();
+    _likesReceivedSub?.cancel();
     super.dispose();
   }
 }

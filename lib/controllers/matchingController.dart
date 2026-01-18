@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../models/chat_models.dart';
+import '/models/chatModels.dart';
 
 class MatchingController with ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -17,12 +17,15 @@ class MatchingController with ChangeNotifier {
   ChatUser? _lastMatchedUser; // To store the user that was just matched
 
   List<ChatUser> get profiles => _profiles; // Renamed getter
-  ChatUser? get lastMatchedUser => _lastMatchedUser; // Getter for the last matched user
+  ChatUser? get lastMatchedUser =>
+      _lastMatchedUser; // Getter for the last matched user
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
-  String? get currentUserId => _currentUser?.uid; // New getter for current user's UID
-  String? get currentMatchChatRoomId { // New getter for chatRoomId after a match
+  String? get currentUserId =>
+      _currentUser?.uid; // New getter for current user's UID
+  String? get currentMatchChatRoomId {
+    // New getter for chatRoomId after a match
     if (_currentUser != null && _lastMatchedUser != null) {
       return _generateChatRoomId(_currentUser!.uid, _lastMatchedUser!.uid);
     }
@@ -63,7 +66,9 @@ class MatchingController with ChangeNotifier {
       print('Current User UID: ${_currentUser!.uid}');
 
       QuerySnapshot usersSnapshot = await _firestore.collection('users').get();
-      print('Total documents in "users" collection: ${usersSnapshot.docs.length}');
+      print(
+        'Total documents in "users" collection: ${usersSnapshot.docs.length}',
+      );
 
       List<ChatUser> fetchedAllUsers = [];
       for (var doc in usersSnapshot.docs) {
@@ -74,13 +79,17 @@ class MatchingController with ChangeNotifier {
         }
         fetchedAllUsers.add(ChatUser.fromMap(data, documentId: doc.id));
       }
-      print('Valid ChatUsers parsed from DB (including current user): ${fetchedAllUsers.length}');
+      print(
+        'Valid ChatUsers parsed from DB (including current user): ${fetchedAllUsers.length}',
+      );
 
       // Filter out the current user and store as all available users
       _allAvailableProfiles = fetchedAllUsers
           .where((user) => user.uid != _currentUser!.uid)
           .toList();
-      print('All available users (excluding current user): ${_allAvailableProfiles.length}');
+      print(
+        'All available users (excluding current user): ${_allAvailableProfiles.length}',
+      );
 
       // Get already swiped users by current user (both liked and disliked)
       QuerySnapshot swipedUsersSnapshot = await _firestore
@@ -88,26 +97,32 @@ class MatchingController with ChangeNotifier {
           .doc(_currentUser!.uid)
           .collection('swipes')
           .get();
-      Set<String> swipedUserIds = swipedUsersSnapshot.docs.map((doc) => doc.id).toSet();
+      Set<String> swipedUserIds = swipedUsersSnapshot.docs
+          .map((doc) => doc.id)
+          .toSet();
       print('Users already swiped by current user: ${swipedUserIds.length}');
 
       // Filter out already swiped users for the initial load
       _profiles = _allAvailableProfiles
           .where((user) => !swipedUserIds.contains(user.uid))
           .toList();
-      print('Profiles to match initially (not yet swiped): ${_profiles.length}');
 
-      if (_profiles.isEmpty) {
-        // If no new profiles, display all available profiles again (reset)
-        print('No new profiles. Resetting cards from all available users.');
-        _profiles = List.from(_allAvailableProfiles); // Populate with all users
-        if (_profiles.isEmpty) {
-          _errorMessage = 'Tidak ada pengguna baru untuk dicocokkan.';
-        }
-      } else {
-          _errorMessage = 'Semua pengguna sudah di-swipe. Kartu akan diulang.'; // Inform user
-        }
+      // Shuffle profiles untuk mengacak urutan setiap kali load
+      _profiles.shuffle();
 
+      print(
+        'Profiles to match initially (not yet swiped): ${_profiles.length}',
+      );
+
+      if (_profiles.isEmpty && _allAvailableProfiles.isNotEmpty) {
+        // Jika sudah swipe semua, tampilkan ulang dengan urutan acak
+        print('No new profiles. Showing all users in random order.');
+        _profiles = List.from(_allAvailableProfiles);
+        _profiles
+            .shuffle(); // Acak urutan agar tidak selalu mulai dari orang yang sama
+      } else if (_profiles.isEmpty) {
+        _errorMessage = 'Tidak ada pengguna untuk dicocokkan.';
+      }
     } catch (e) {
       _errorMessage = 'Error fetching profiles: $e';
       print('Error fetching profiles: $e');
@@ -143,35 +158,38 @@ class MatchingController with ChangeNotifier {
 
     try {
       // Record the swipe action
-      await _firestore.collection('users').doc(_currentUser!.uid).collection('swipes').doc(swipedUser.uid).set({
-        'liked': isLiked,
-        'timestamp': FieldValue.serverTimestamp(),
-      });
+      await _firestore
+          .collection('users')
+          .doc(_currentUser!.uid)
+          .collection('swipes')
+          .doc(swipedUser.uid)
+          .set({
+            'liked': isLiked,
+            'timestamp': FieldValue.serverTimestamp(),
+            'targetUserId': swipedUser
+                .uid, // Ditambahkan untuk mendukung collectionGroup query
+          });
 
       if (isLiked) {
-        // Check if the swiped user has also liked the current user
-        DocumentSnapshot swipedUserSwipeDoc = await _firestore.collection('users').doc(swipedUser.uid).collection('swipes').doc(_currentUser!.uid).get();
-
-        if (swipedUserSwipeDoc.exists && (swipedUserSwipeDoc.data() as Map<String, dynamic>)['liked'] == true) {
-          // It's a match!
-          await _createMatch(swipedUser);
-          _lastMatchedUser = swipedUser; // Store the matched user
-          _errorMessage = 'It\'s a Match with ${swipedUser.username}!'; // Use errorMessage to show match status
-          onMatchFound?.call(); // Trigger the callback
-        }
+        // Langsung Match jika kita menyukai (agar bisa langsung chat)
+        await _createMatch(swipedUser);
+        _lastMatchedUser = swipedUser; // Store the matched user
+        // Tetap gunakan awalan "It's a Match" agar logika UI di MatchingScreen menyembunyikan pesan error ini
+        _errorMessage = 'It\'s a Match with ${swipedUser.username}!';
+        onMatchFound?.call(); // Trigger the callback
       }
-      
+
       // Remove the swiped user from the list
-      _profiles.removeWhere((user) => user.uid == swipedUser.uid);
-      if (_profiles.isEmpty) {
-        print('All cards swiped. Resetting cards from all available users.');
-        _profiles = List.from(_allAvailableProfiles); // Reset cards
-        if (_profiles.isEmpty) {
-          _errorMessage = 'Tidak ada pengguna baru untuk dicocokkan.'; // Still empty, no users at all
-        }
-      } else {
-          _errorMessage = 'Semua pengguna sudah di-swipe. Kartu akan diulang.'; // Inform user
-        }
+      _profiles.removeWhere((user) => user.uid == swipedUser!.uid);
+      if (_profiles.isEmpty && _allAvailableProfiles.isNotEmpty) {
+        // Jika sudah swipe semua, tampilkan ulang dengan urutan acak
+        print('All cards swiped. Showing all users in random order.');
+        _profiles = List.from(_allAvailableProfiles);
+        _profiles
+            .shuffle(); // Acak urutan agar tidak selalu mulai dari orang yang sama
+      } else if (_profiles.isEmpty) {
+        _errorMessage = 'Tidak ada pengguna untuk dicocokkan.';
+      }
     } catch (e) {
       _errorMessage = 'Error performing swipe action: $e';
       print('Error performing swipe action: $e');
@@ -186,18 +204,28 @@ class MatchingController with ChangeNotifier {
     String chatRoomId = _generateChatRoomId(_currentUser!.uid, matchedUser.uid);
 
     // Add to current user's matches
-    await _firestore.collection('users').doc(_currentUser!.uid).collection('matches').doc(matchedUser.uid).set({
-      'matchedAt': FieldValue.serverTimestamp(),
-      'chatRoomId': chatRoomId,
-      'otherUserId': matchedUser.uid,
-    });
+    await _firestore
+        .collection('users')
+        .doc(_currentUser!.uid)
+        .collection('matches')
+        .doc(matchedUser.uid)
+        .set({
+          'matchedAt': FieldValue.serverTimestamp(),
+          'chatRoomId': chatRoomId,
+          'otherUserId': matchedUser.uid,
+        });
 
     // Add to matched user's matches
-    await _firestore.collection('users').doc(matchedUser.uid).collection('matches').doc(_currentUser!.uid).set({
-      'matchedAt': FieldValue.serverTimestamp(),
-      'chatRoomId': chatRoomId,
-      'otherUserId': _currentUser!.uid,
-    });
+    await _firestore
+        .collection('users')
+        .doc(matchedUser.uid)
+        .collection('matches')
+        .doc(_currentUser!.uid)
+        .set({
+          'matchedAt': FieldValue.serverTimestamp(),
+          'chatRoomId': chatRoomId,
+          'otherUserId': _currentUser!.uid,
+        });
 
     // Create a chat room
     await _firestore.collection('chatRooms').doc(chatRoomId).set({
