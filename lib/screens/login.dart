@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'register.dart';
-import 'home.dart';
 import '/controllers/loginController.dart';
+import 'home.dart'; // Re-add import for HomePage
 
 class LoginPage extends StatefulWidget {
-  const LoginPage({Key? key}) : super(key: key);
+  const LoginPage({super.key});
 
   @override
   State<LoginPage> createState() => _LoginPageState();
@@ -12,158 +13,148 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   final formKey = GlobalKey<FormState>();
-
-  late LoginController _loginController;
-
-  bool isLoading = false;
   bool _obscurePassword = true;
 
   @override
   void initState() {
     super.initState();
-    _loginController = LoginController();
   }
 
   @override
   void dispose() {
-    _loginController.dispose();
     super.dispose();
   }
 
   //login dan validasi
-  Future<void> _submitLogin() 
-  async {
-    if (!formKey.currentState!.validate()) 
-    return;
+  Future<void> _submitLogin(LoginController loginController) async {
+    if (!formKey.currentState!.validate()) return;
 
-    setState(() => isLoading = true);
+    bool success = await loginController.submitLogin();
 
-    await _loginController.submitLogin();
+    if (!mounted) return;
 
-    setState(() => isLoading = false);
-
-  
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Berhasil login sebagai ${_loginController.emailController.text}'),
-      ),
-    );
-
-    // Pindah ke halaman beranda
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(
-        builder: (_) => HomePage(name: _loginController.name),
-      ),
-    );
+    if (success) {
+      // Re-add explicit navigation for robustness
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => const HomePage()),
+      );
+    } else {
+      // Display error message from controller
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(loginController.errorMessage ?? 'Terjadi kesalahan tidak dikenal.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      
-      body: Container(
-        color: Colors.green[100],
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 500),
-              child: Form(
-                key: formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    const SizedBox(height: 24),
-                    const Center(
-                      child: Text(
-                        'SeHati Apps',
-                        style: TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
-                          color: Color.fromARGB(255, 73, 174, 77),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    const FlutterLogo(size: 96),
-                    const SizedBox(height: 24),
-
-                    TextFormField(
-                      controller: _loginController.emailController,
-                      keyboardType: TextInputType.text,
-                      decoration: const InputDecoration(
-                        labelText: 'Username',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.person),
-                        filled: true,
-                        fillColor: Colors.white,
-                      ),
-                      validator: _loginController.validateUsername,
-                    ),
-
-                    const SizedBox(height: 12),
-
-                    TextFormField(
-                      controller: _loginController.passwordController,
-                      obscureText: _obscurePassword,
-                      decoration: InputDecoration(
-                        labelText: 'Kata sandi',
-                        border: const OutlineInputBorder(),
-                        prefixIcon: const Icon(Icons.lock),
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _obscurePassword ? Icons.visibility_off : Icons.visibility,
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              _obscurePassword = !_obscurePassword;
-                            });
-                          },
-                        ),
-                        filled: true,
-                        fillColor: Colors.white,
-                      ),
-                      validator: _loginController.validatePassword,
-                    ),
-
-                    const SizedBox(height: 16),
-
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green[800],
-                        foregroundColor: Colors.white,
-                      ),
-                      onPressed: isLoading ? null : _submitLogin,
-                      child: isLoading
-                          ? const SizedBox(
-                              width: 18,
-                              height: 18,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
+    return ChangeNotifierProvider(
+      create: (_) => LoginController(),
+      child: Scaffold(
+        body: Consumer<LoginController>(
+          builder: (context, controller, child) {
+            return Container(
+              color: Colors.green[100],
+              child: Center(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 500),
+                    child: Form(
+                      key: formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          const SizedBox(height: 24),
+                          const Center(
+                            child: Text(
+                              'SeHati Apps',
+                              style: TextStyle(
+                                fontSize: 28,
+                                fontWeight: FontWeight.bold,
+                                color: Color.fromARGB(255, 73, 174, 77),
                               ),
-                            )
-                          : const Text('Masuk'),
-                    ),
-
-                    const SizedBox(height: 8),
-
-                    TextButton(
-                      style: TextButton.styleFrom(
-                        foregroundColor: Colors.green,
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          const FlutterLogo(size: 96),
+                          const SizedBox(height: 24),
+                          TextFormField(
+                            controller: controller.emailController,
+                            keyboardType: TextInputType.text,
+                            decoration: const InputDecoration(
+                              labelText: 'Username',
+                              border: OutlineInputBorder(),
+                              prefixIcon: Icon(Icons.person),
+                              filled: true,
+                              fillColor: Colors.white,
+                            ),
+                            validator: controller.validateUsername,
+                          ),
+                          const SizedBox(height: 12),
+                          TextFormField(
+                            controller: controller.passwordController,
+                            obscureText: _obscurePassword,
+                            decoration: InputDecoration(
+                              labelText: 'Kata sandi',
+                              border: const OutlineInputBorder(),
+                              prefixIcon: const Icon(Icons.lock),
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    _obscurePassword = !_obscurePassword;
+                                  });
+                                },
+                              ),
+                              filled: true,
+                              fillColor: Colors.white,
+                            ),
+                            validator: controller.validatePassword,
+                          ),
+                          const SizedBox(height: 16),
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.green[800],
+                              foregroundColor: Colors.white,
+                            ),
+                            onPressed: controller.isLoading ? null : () => _submitLogin(controller),
+                            child: controller.isLoading
+                                ? const SizedBox(
+                                    width: 18,
+                                    height: 18,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: Colors.white,
+                                    ),
+                                  )
+                                : const Text('Masuk'),
+                          ),
+                          const SizedBox(height: 8),
+                          TextButton(
+                            style: TextButton.styleFrom(
+                              foregroundColor: Colors.green,
+                            ),
+                            onPressed: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(builder: (_) => const RegisterPage()),
+                              );
+                            },
+                            child: const Text('Belum punya akun? Daftar'),
+                          ),
+                        ],
                       ),
-                      onPressed: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(builder: (_) => const RegisterPage()),
-                        );
-                      },
-                      child: const Text('Belum punya akun? Daftar'),
                     ),
-                  ],
+                  ),
                 ),
               ),
-            ),
-          ),
+            );
+          },
         ),
       ),
     );

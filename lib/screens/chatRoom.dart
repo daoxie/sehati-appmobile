@@ -1,13 +1,17 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../controllers/chatController.dart';
-import '../models/chat_models.dart';
+import '../models/chat_models.dart'; 
 
 class ChatRoomScreen extends StatefulWidget {
-  final ChatContactModel contact;
+  final String receiverId;
+  final String receiverName;
 
-  const ChatRoomScreen({super.key, required this.contact});
+  const ChatRoomScreen({
+    super.key,
+    required this.receiverId,
+    required this.receiverName,
+  });
 
   @override
   State<ChatRoomScreen> createState() => _ChatRoomScreenState();
@@ -18,9 +22,11 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final chatController = Provider.of<ChatController>(context); // Get controller instance
+
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.contact.name),
+        title: Text(widget.receiverName), // Use receiverName
         backgroundColor: Colors.green,
         actions: [
           IconButton(
@@ -36,27 +42,41 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
       body: Column(
         children: [
           Expanded(
-            child: Consumer<ChatController>(
-              builder: (context, controller, child) {
+            child: StreamBuilder<List<MessageModel>>(
+              stream: chatController.getMessages(widget.receiverId), // Stream messages
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (snapshot.hasError) {
+                  return Center(child: Text('Error: ${snapshot.error}'));
+                }
+                if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return const Center(child: Text('Belum ada pesan. Kirim yang pertama!'));
+                }
+
+                final messages = snapshot.data!;
                 return ListView.builder(
+                  reverse: true, // Show latest messages at the bottom
                   padding: const EdgeInsets.all(16.0),
-                  itemCount: controller.messages.length,
+                  itemCount: messages.length,
                   itemBuilder: (context, index) {
-                    final message = controller.messages[index];
+                    final message = messages[index];
                     return _buildChatBubble(message);
                   },
                 );
               },
             ),
           ),
-          _buildInputPanel(context),
+          _buildInputPanel(context, chatController), // Pass chatController to input panel
         ],
       ),
     );
   }
 
   Widget _buildChatBubble(MessageModel message) {
-    final isMe = message.isSentByMe;
+    final isMe = message.isSentByMe; 
+    
     return Align(
       alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
@@ -67,17 +87,16 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
           borderRadius: BorderRadius.circular(12.0),
         ),
         child: message.isImage
-            ? Image.file(File(message.text))
+            ? Image.network(message.text, width: 200) // Display image from URL
             : Text(
-                message.text,
+                '${message.text} (${message.timestamp})', // Display message and timestamp
                 style: const TextStyle(fontSize: 16.0),
               ),
       ),
     );
   }
 
-  Widget _buildInputPanel(BuildContext context) {
-    final controller = Provider.of<ChatController>(context, listen: false);
+  Widget _buildInputPanel(BuildContext context, ChatController controller) { // Added ChatController parameter
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Row(
@@ -100,19 +119,19 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
           IconButton(
             icon: const Icon(Icons.camera_alt, color: Colors.green),
             onPressed: () {
-              controller.takeAndSendImage();
+              controller.takeAndSendImage(widget.receiverId); // Call takeAndSendImage
             },
           ),
           IconButton(
             icon: const Icon(Icons.image, color: Colors.green),
             onPressed: () {
-              controller.pickAndSendImage();
+              controller.pickAndSendImage(widget.receiverId); // Call pickAndSendImage
             },
           ),
           ElevatedButton(
             onPressed: () {
               if (_textController.text.isNotEmpty) {
-                controller.sendMessage(_textController.text);
+                controller.sendMessage(_textController.text, widget.receiverId); // Pass receiverId
                 _textController.clear();
               }
             },

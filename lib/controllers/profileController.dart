@@ -2,8 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 
-class ProfileController {
+class ProfileController extends ChangeNotifier {
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseStorage _storage = FirebaseStorage.instance;
+
   //input
   final TextEditingController nikController = TextEditingController();
   final TextEditingController nameController = TextEditingController();
@@ -14,9 +21,11 @@ class ProfileController {
   String? gender;
   DateTime? selectedDate;
   File? imageFile;
+  String? imageUrl; // Add imageUrl property
 
   final ImagePicker _picker = ImagePicker();
-  VoidCallback? onImageSelected;
+  // No longer need a manual callback
+  // VoidCallback? onImageSelected;
 
   //validasi NIK
   String? validateNIK(String? value) {
@@ -87,7 +96,7 @@ class ProfileController {
     final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
       imageFile = File(pickedFile.path);
-      onImageSelected?.call();
+      notifyListeners(); // Notify listeners of the change
     }
   }
 
@@ -95,34 +104,84 @@ class ProfileController {
     final XFile? pickedFile = await _picker.pickImage(source: ImageSource.camera);
     if (pickedFile != null) {
       imageFile = File(pickedFile.path);
-      onImageSelected?.call(); 
+      notifyListeners(); // Notify listeners of the change
     }
+  }
+
+  bool _isLoading = false;
+  bool get isLoading => _isLoading;
+  set isLoading(bool value) {
+    _isLoading = value;
+    notifyListeners();
   }
 
   //menyimpan profil
-  bool saveProfile() {
-    if (nikController.text.isEmpty ||
-        nameController.text.isEmpty ||
-        addressController.text.isEmpty ||
-        dobController.text.isEmpty ||
-        gender == null ||
-        gender!.isEmpty) {
+  Future<bool> saveProfile() async {
+    isLoading = true;
+    final String? uid = _auth.currentUser?.uid;
+    if (uid == null) {
+      isLoading = false;
+      return false; // Not logged in
+    }
+
+    try {
+      String? newImageUrl;
+      // If there is a new image file, upload it
+      if (imageFile != null) {
+        final ref = _storage.ref().child('profile_images').child('$uid.jpg');
+        await ref.putFile(imageFile!);
+        newImageUrl = await ref.getDownloadURL();
+      }
+
+      // Prepare data to be saved
+      Map<String, dynamic> userData = {
+        'name': nameController.text,
+        'nik': nikController.text,
+        'address': addressController.text,
+        'dob': dobController.text,
+        'gender': gender,
+        'imageUrl': newImageUrl ?? imageUrl, // Use new URL, or fall back to existing
+      };
+
+      // Update user document in Firestore
+      await _firestore.collection('users').doc(uid).update(userData);
+
+      isLoading = false;
+      return true;
+    } catch (e) {
+      print('Error saving profile: $e');
+      isLoading = false;
       return false;
     }
-    
-    //cetak data profil
-    print('NIK: ${nikController.text}');
-    print('Nama: ${nameController.text}');
-    print('Jenis Kelamin: $gender');
-    print('Tanggal Lahir: ${dobController.text}');
-    print('Alamat: ${addressController.text}');
-    if (imageFile != null) {
-      print('Image Path: ${imageFile!.path}');
-    }
-    
-    return true;
   }
 
+  Future<void> loadProfileData() async {
+    isLoading = true;
+    final String? uid = _auth.currentUser?.uid;
+    if (uid == null) {
+      isLoading = false;
+      return; // Not logged in
+    }
+
+    try {
+      final doc = await _firestore.collection('users').doc(uid).get();
+      if (doc.exists && doc.data() != null) {
+        final data = doc.data()!;
+        nameController.text = data['name'] ?? '';
+        nikController.text = data['nik'] ?? '';
+        addressController.text = data['address'] ?? '';
+        dobController.text = data['dob'] ?? '';
+        gender = data['gender'];
+        imageUrl = data['imageUrl']; // Load the image URL
+        notifyListeners(); // Notify UI of loaded data
+      }
+    } catch (e) {
+      print('Error loading profile data: $e');
+    } finally {
+      isLoading = false;
+    }
+  }
+  
   //bersihkan semua field kecuali nama
   void clearAllExceptName() {
     nikController.clear();
@@ -131,14 +190,16 @@ class ProfileController {
     gender = null;
     selectedDate = null;
     imageFile = null;
+    imageUrl = null; // Also clear imageUrl
   }
 
   //bersihkan resources
+  @override
   void dispose() {
     nikController.dispose();
     nameController.dispose();
     addressController.dispose();
     dobController.dispose();
-  
+    super.dispose();
   }
 }

@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart'; // Import Firebase Auth
+import 'package:cloud_firestore/cloud_firestore.dart'; // Import Firestore
 
-class RegisterController {
+class RegisterController extends ChangeNotifier {
+  final FirebaseAuth _auth = FirebaseAuth.instance; // Instance of Firebase Auth
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance; // Instance of Firestore
+
   //input
   final TextEditingController nameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
@@ -9,6 +14,20 @@ class RegisterController {
 
   bool obscurePassword = true;
   bool obscureConfirm = true;
+
+  bool _isLoading = false;
+  bool get isLoading => _isLoading;
+  set isLoading(bool value) {
+    _isLoading = value;
+    notifyListeners();
+  }
+
+  String? _errorMessage;
+  String? get errorMessage => _errorMessage;
+  set errorMessage(String? value) {
+    _errorMessage = value;
+    notifyListeners();
+  }
 
   //validasi username
   String? validateUsername(String? value) {
@@ -61,15 +80,49 @@ class RegisterController {
 
   //registrasi
   Future<bool> submitRegister() async {
-    await Future.delayed(const Duration(seconds: 1));
-    return true;
+    errorMessage = null;
+    isLoading = true;
+    try {
+      UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
+        email: emailController.text.trim(),
+        password: passwordController.text.trim(),
+      );
+
+      if (userCredential.user != null) {
+        await _firestore.collection('users').doc(userCredential.user!.uid).set({
+          'uid': userCredential.user!.uid,
+          'name': nameController.text.trim(),
+          'email': emailController.text.trim(),
+          'imageUrl': '',
+        });
+      }
+      
+      return true;
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'weak-password') {
+        errorMessage = 'Kata sandi terlalu lemah.';
+      } else if (e.code == 'email-already-in-use') {
+        errorMessage = 'Email sudah terdaftar.';
+      } else {
+        errorMessage = 'Terjadi kesalahan: ${e.message}';
+      }
+      return false;
+    } catch (e) {
+      errorMessage = 'Terjadi kesalahan tak terduga: $e';
+      return false;
+    }
+    finally {
+      isLoading = false;
+    }
   }
 
   //Bersihkan resources
+  @override
   void dispose() {
     nameController.dispose();
     emailController.dispose();
     passwordController.dispose();
     confirmController.dispose();
+    super.dispose();
   }
 }
