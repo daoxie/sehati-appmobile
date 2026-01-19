@@ -243,7 +243,7 @@ class ProfileController extends ChangeNotifier {
         _startListeningToLikeCounts(
           uid,
         ); // Mulai dengarkan data like secara realtime
-        notifyListeners(); // Notify UI of loaded data
+        notifyListeners();
       } else {
         errorMessage = 'Profil pengguna tidak ditemukan.';
       }
@@ -258,13 +258,12 @@ class ProfileController extends ChangeNotifier {
     }
   }
 
-  // Realtime Listener untuk Like
+  //untuk Like
   void _startListeningToLikeCounts(String userId) {
-    // Batalkan listener lama jika ada
     _likesGivenSub?.cancel();
     _likesReceivedSub?.cancel();
 
-    // 1. Listen Likes Given (Yang kita like)
+    //yang kita like
     _likesGivenSub = _firestore
         .collection('users')
         .doc(userId)
@@ -276,8 +275,7 @@ class ProfileController extends ChangeNotifier {
           notifyListeners();
         });
 
-    // 2. Listen Likes Received (Yang like kita)
-    // Menggunakan collectionGroup untuk mencari di seluruh database siapa yang swipe kita
+    //melihat siapa yg like
     _likesReceivedSub = _firestore
         .collectionGroup('swipes')
         .where(

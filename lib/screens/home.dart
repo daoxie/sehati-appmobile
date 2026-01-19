@@ -19,7 +19,7 @@ class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
 
   final List<Widget> _widgetOptions = <Widget>[
-    MatchingScreen(), // Display MatchingScreen when the tab is selected
+    MatchingScreen(), //tampilanmatching
     const ChatListScreen(),
     const ProfilePage(),
   ];
@@ -41,10 +41,10 @@ class _HomePageState extends State<HomePage> {
         ChangeNotifierProvider(create: (_) => MatchingController()),
         ChangeNotifierProvider(
           create: (_) => ChatController(),
-        ), // Tambahkan ChatController
+        ),
         ChangeNotifierProvider(
           create: (_) => ProfileController(),
-        ), // Tambahkan ProfileController agar data termuat
+        ),
       ],
       child: Scaffold(
         appBar: AppBar(

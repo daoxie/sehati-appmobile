@@ -111,7 +111,7 @@ class ProfilePage extends StatelessWidget {
                       ),
                       const SizedBox(
                         height: 16,
-                      ), // Add spacing before new cards
+                      ),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [

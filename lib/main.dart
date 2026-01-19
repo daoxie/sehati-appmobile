@@ -5,7 +5,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'firebase_options.dart';
 import 'screens/login.dart';
 import 'screens/home.dart';
-
 import 'controllers/chatController.dart';
 import 'controllers/profileController.dart';
 
@@ -52,7 +51,6 @@ class MyApp extends StatelessWidget {
                 return const LoginPage();
               },
             ),
-        // '/matching': (context) => MatchingScreen(), // Removed matching route
       },
     );
   }

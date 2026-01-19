@@ -179,20 +179,19 @@ class MatchingController with ChangeNotifier {
         onMatchFound?.call(); // Trigger the callback
       }
 
-      // Remove the swiped user from the list
       _profiles.removeWhere((user) => user.uid == swipedUser!.uid);
       if (_profiles.isEmpty && _allAvailableProfiles.isNotEmpty) {
-        // Jika sudah swipe semua, tampilkan ulang dengan urutan acak
-        print('All cards swiped. Showing all users in random order.');
+        //menampilkan urutan acak
+        print('Menampilkan semua pengguna dalam urutan acak');
         _profiles = List.from(_allAvailableProfiles);
         _profiles
-            .shuffle(); // Acak urutan agar tidak selalu mulai dari orang yang sama
+            .shuffle(); //urutan acak
       } else if (_profiles.isEmpty) {
         _errorMessage = 'Tidak ada pengguna untuk dicocokkan.';
       }
     } catch (e) {
       _errorMessage = 'Error performing swipe action: $e';
-      print('Error performing swipe action: $e');
+      print('Eror saat melakukan aksi: $e');
     } finally {
       notifyListeners();
     }
@@ -202,8 +201,7 @@ class MatchingController with ChangeNotifier {
     if (_currentUser == null) return;
 
     String chatRoomId = _generateChatRoomId(_currentUser!.uid, matchedUser.uid);
-
-    // Add to current user's matches
+//match keuser kita
     await _firestore
         .collection('users')
         .doc(_currentUser!.uid)
@@ -215,7 +213,7 @@ class MatchingController with ChangeNotifier {
           'otherUserId': matchedUser.uid,
         });
 
-    // Add to matched user's matches
+    //match keuser lawan
     await _firestore
         .collection('users')
         .doc(matchedUser.uid)
@@ -227,21 +225,20 @@ class MatchingController with ChangeNotifier {
           'otherUserId': _currentUser!.uid,
         });
 
-    // Create a chat room
+    //buat room chat baru
     await _firestore.collection('chatRooms').doc(chatRoomId).set({
       'users': [_currentUser!.uid, matchedUser.uid],
       'createdAt': FieldValue.serverTimestamp(),
-      'lastMessage': 'Match baru! Sapa dia sekarang.',
+      'lastMessage': 'Match baru! Say hay dia sekarang.',
       'lastMessageTime': FieldValue.serverTimestamp(),
     }, SetOptions(merge: true));
   }
 
   String _generateChatRoomId(String uid1, String uid2) {
-    // Ensure consistent chat room ID regardless of user order
+ //id ruang obrolan
     return uid1.compareTo(uid2) < 0 ? '${uid1}_$uid2' : '${uid2}_$uid1';
   }
 
-  // Helper to clear error message
   void clearErrorMessage() {
     _errorMessage = null;
     notifyListeners();

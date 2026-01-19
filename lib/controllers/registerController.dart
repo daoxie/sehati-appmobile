@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart'; // Import Firebase Auth
-import 'package:cloud_firestore/cloud_firestore.dart'; // Import Firestore
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class RegisterController extends ChangeNotifier {
-  final FirebaseAuth _auth = FirebaseAuth.instance; // Instance of Firebase Auth
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance; // Instance of Firestore
+  final FirebaseAuth _auth = FirebaseAuth.instance; 
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance; 
 
   //input
   final TextEditingController nameController = TextEditingController();
-  final TextEditingController usernameController = TextEditingController(); // New
+  final TextEditingController usernameController = TextEditingController(); 
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController confirmController = TextEditingController();

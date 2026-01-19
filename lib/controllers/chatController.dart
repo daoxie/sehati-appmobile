@@ -20,7 +20,7 @@ class ChatController extends ChangeNotifier {
     return _firestore
         .collection('users')
         .doc(currentUserId)
-        .collection('matches') // Get matches for the current user
+        .collection('matches')
         .snapshots()
         .asyncMap((matchesSnapshot) async {
           List<ChatContactModel> contacts = [];
@@ -82,14 +82,14 @@ class ChatController extends ChangeNotifier {
   }
 
   Stream<List<MessageModel>> getMessages(String chatRoomId) {
-    // Updated to use chatRoomId directly
+    //Updated
     final String? senderId = _auth.currentUser?.uid;
     if (senderId == null) {
       return Stream.value([]);
     }
 
     return _firestore
-        .collection('chatRooms') // Messages are now under chatRooms
+        .collection('chatRooms')
         .doc(chatRoomId)
         .collection('messages')
         .orderBy('timestamp', descending: true)

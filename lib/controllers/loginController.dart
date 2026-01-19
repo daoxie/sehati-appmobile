@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart'; // Import Firebase Auth
-import 'package:cloud_firestore/cloud_firestore.dart'; // Import Firestore
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class LoginController extends ChangeNotifier {
-  final FirebaseAuth _auth = FirebaseAuth.instance; // Instance of Firebase Auth
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance; // Instance of Firestore
+  final FirebaseAuth _auth = FirebaseAuth.instance; 
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   
   final TextEditingController usernameOrEmailController = TextEditingController();
@@ -24,19 +24,18 @@ class LoginController extends ChangeNotifier {
     _errorMessage = value;
     notifyListeners();
   }
-
+//validasi email
   String? validateUsernameOrEmail(String? value) {
     if (value == null || value.isEmpty) {
       return 'Username atau Email wajib diisi';
     }
-    // Check if it's an email
     final emailRegex = RegExp(r'^[a-zA-Z0-9.]+@[a-zA-Z0-9]+\.[a-zA-Z]+');
     if (value.contains('@')) {
       if (!emailRegex.hasMatch(value)) {
         return 'Format email tidak valid';
       }
     } else {
-      // Assuming it's a username, no spaces allowed
+      //validasi username
       if (value.contains(' ')) {
         return 'Username tidak boleh mengandung spasi';
       }
@@ -62,9 +61,8 @@ class LoginController extends ChangeNotifier {
     try {
       String signInEmail = usernameOrEmailController.text.trim();
 
-      // Check if the input is a username or an email
+      //validasi nama pengguna atau alamat email.
       if (!signInEmail.contains('@')) {
-        // Assume it's a username, query Firestore to get the email
         final querySnapshot = await _firestore
             .collection('users')
             .where('username', isEqualTo: signInEmail)

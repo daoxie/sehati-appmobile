@@ -221,7 +221,7 @@ class _MatchingScreenState extends State<MatchingScreen>
                   ),
                 ),
 
-              // Kartu saat ini (di depan, bisa digeser)
+          
               Align(
                 alignment: _animationController.isAnimating
                     ? _animation.value

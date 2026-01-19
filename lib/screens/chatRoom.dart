@@ -72,7 +72,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                 final messages = snapshot.data!;
 
                 return ListView.builder(
-                  reverse: true, // Show latest messages at the bottom
+                  reverse: true, 
                   itemCount: messages.length,
                   itemBuilder: (context, index) {
                     final message = messages[index];
