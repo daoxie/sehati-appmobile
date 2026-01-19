@@ -33,16 +33,19 @@ class _RegisterPageState extends State<RegisterPage> {
     if (!mounted) return;
 
     if (success) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Registrasi berhasil')),
-      );
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const LoginPage()),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Registrasi berhasil')));
+      Navigator.of(
+        context,
+      ).pushReplacement(MaterialPageRoute(builder: (_) => const LoginPage()));
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(registerController.errorMessage ?? 'Terjadi kesalahan tidak dikenal.'),
+          content: Text(
+            registerController.errorMessage ??
+                'Terjadi kesalahan tidak dikenal.',
+          ),
           backgroundColor: Colors.red,
         ),
       );
@@ -53,7 +56,8 @@ class _RegisterPageState extends State<RegisterPage> {
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (_) => RegisterController(),
-      child: Consumer<RegisterController>( // Use Consumer directly here
+      child: Consumer<RegisterController>(
+        // Use Consumer directly here
         builder: (context, controller, child) {
           return Scaffold(
             appBar: AppBar(
@@ -73,7 +77,29 @@ class _RegisterPageState extends State<RegisterPage> {
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           const SizedBox(height: 24),
-                          const FlutterLogo(size: 80),
+                          Center(
+                            child: Container(
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.3),
+                                    blurRadius: 15,
+                                    spreadRadius: 3,
+                                    offset: const Offset(0, 8),
+                                  ),
+                                ],
+                              ),
+                              child: ClipOval(
+                                child: Image.asset(
+                                  'asset/image/logoSHjpeg-removebg-preview.png',
+                                  width: 100,
+                                  height: 100,
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                            ),
+                          ),
                           const SizedBox(height: 24),
 
                           TextFormField(
@@ -127,10 +153,15 @@ class _RegisterPageState extends State<RegisterPage> {
                               border: const OutlineInputBorder(),
                               prefixIcon: const Icon(Icons.lock),
                               suffixIcon: IconButton(
-                                icon: Icon(controller.obscurePassword ? Icons.visibility : Icons.visibility_off),
+                                icon: Icon(
+                                  controller.obscurePassword
+                                      ? Icons.visibility
+                                      : Icons.visibility_off,
+                                ),
                                 onPressed: () {
                                   setState(() {
-                                    controller.obscurePassword = !controller.obscurePassword;
+                                    controller.obscurePassword =
+                                        !controller.obscurePassword;
                                   });
                                 },
                               ),
@@ -150,10 +181,15 @@ class _RegisterPageState extends State<RegisterPage> {
                               border: const OutlineInputBorder(),
                               prefixIcon: const Icon(Icons.lock),
                               suffixIcon: IconButton(
-                                icon: Icon(controller.obscureConfirm ? Icons.visibility : Icons.visibility_off),
+                                icon: Icon(
+                                  controller.obscureConfirm
+                                      ? Icons.visibility
+                                      : Icons.visibility_off,
+                                ),
                                 onPressed: () {
                                   setState(() {
-                                    controller.obscureConfirm = !controller.obscureConfirm;
+                                    controller.obscureConfirm =
+                                        !controller.obscureConfirm;
                                   });
                                 },
                               ),
@@ -170,12 +206,17 @@ class _RegisterPageState extends State<RegisterPage> {
                               backgroundColor: Colors.green[800],
                               foregroundColor: Colors.white,
                             ),
-                            onPressed: controller.isLoading ? null : () => _submit(controller),
+                            onPressed: controller.isLoading
+                                ? null
+                                : () => _submit(controller),
                             child: controller.isLoading
                                 ? const SizedBox(
                                     width: 18,
                                     height: 18,
-                                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: Colors.white,
+                                    ),
                                   )
                                 : const Text('Daftar'),
                           ),
