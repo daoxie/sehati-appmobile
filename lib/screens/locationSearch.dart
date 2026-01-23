@@ -41,13 +41,13 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1A1A2E),
+      backgroundColor: const Color(0xFFE8F5E9), // Hijau muda
       appBar: AppBar(
         title: const Text(
           'Cari Pengguna',
           style: TextStyle(color: Colors.white),
         ),
-        backgroundColor: const Color(0xFF16213E),
+        backgroundColor: const Color(0xFF2E7D32), // Hijau gelap
         iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: Consumer<LocationController>(
@@ -80,7 +80,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF16213E),
+        color: const Color(0xFF388E3C), // Hijau
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.2),
@@ -100,8 +100,8 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: _searchMode == 0
-                    ? const Color(0xFFE94560)
-                    : const Color(0xFF0F3460),
+                    ? const Color(0xFF4CAF50) // Hijau aktif
+                    : const Color(0xFF81C784), // Hijau non-aktif
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 shape: RoundedRectangleBorder(
@@ -122,8 +122,8 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: _searchMode == 1
-                    ? const Color(0xFFE94560)
-                    : const Color(0xFF0F3460),
+                    ? const Color(0xFF4CAF50) // Hijau aktif
+                    : const Color(0xFF81C784), // Hijau non-aktif
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 shape: RoundedRectangleBorder(
@@ -144,8 +144,8 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: const BoxDecoration(
-        color: Color(0xFF16213E),
-        border: Border(bottom: BorderSide(color: Color(0xFF0F3460), width: 1)),
+        color: Color(0xFF388E3C), // Hijau
+        border: Border(bottom: BorderSide(color: Color(0xFF2E7D32), width: 1)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -161,7 +161,10 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
           const SizedBox(height: 12),
           Row(
             children: [
-              const Icon(Icons.location_searching, color: Color(0xFFE94560)),
+              const Icon(
+                Icons.location_searching,
+                color: Color(0xFFFFFFFF),
+              ), // Putih
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
@@ -190,8 +193,8 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
             min: 1,
             max: 100,
             divisions: 99,
-            activeColor: const Color(0xFFE94560),
-            inactiveColor: const Color(0xFF0F3460),
+            activeColor: const Color(0xFF4CAF50), // Hijau
+            inactiveColor: const Color(0xFF81C784), // Hijau muda
             label: '${controller.searchRadius.toInt()} km',
             onChanged: (value) {
               controller.setSearchRadius(value);
@@ -207,7 +210,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF16213E),
+        color: const Color(0xFF388E3C), // Hijau
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.2),
@@ -222,14 +225,14 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
           // Dropdown untuk pilih provinsi
           const Text(
             'Pilih Provinsi',
-            style: TextStyle(color: Colors.white70, fontSize: 14),
+            style: TextStyle(color: Colors.black87, fontSize: 14),
           ),
           const SizedBox(height: 8),
           Container(
             decoration: BoxDecoration(
-              color: const Color(0xFF1A1A2E),
+              color: const Color(0xFFE8F5E9), // Hijau sangat muda
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: const Color(0xFF0F3460)),
+              border: Border.all(color: const Color(0xFF4CAF50)), // Hijau
             ),
             child: DropdownButtonHideUnderline(
               child: DropdownButton<String>(
@@ -239,14 +242,14 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
                   padding: EdgeInsets.symmetric(horizontal: 12),
                   child: Text(
                     'Pilih Provinsi',
-                    style: TextStyle(color: Colors.white54),
+                    style: TextStyle(color: Colors.black54),
                   ),
                 ),
                 icon: const Padding(
                   padding: EdgeInsets.only(right: 12),
-                  child: Icon(Icons.arrow_drop_down, color: Colors.white70),
+                  child: Icon(Icons.arrow_drop_down, color: Colors.black54),
                 ),
-                dropdownColor: const Color(0xFF16213E),
+                dropdownColor: const Color(0xFF388E3C), // Hijau
                 items: LocationData.provinsiList.map((String provinsi) {
                   return DropdownMenuItem<String>(
                     value: provinsi,
@@ -254,7 +257,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
                       padding: const EdgeInsets.symmetric(horizontal: 12),
                       child: Text(
                         provinsi,
-                        style: const TextStyle(color: Colors.white),
+                        style: const TextStyle(color: Colors.black),
                       ),
                     ),
                   );
@@ -272,14 +275,14 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
           if (controller.selectedProvinsi != null) ...[
             const Text(
               'Pilih Kota (Opsional)',
-              style: TextStyle(color: Colors.white70, fontSize: 14),
+              style: TextStyle(color: Colors.black87, fontSize: 14),
             ),
             const SizedBox(height: 8),
             Container(
               decoration: BoxDecoration(
-                color: const Color(0xFF1A1A2E),
+                color: const Color(0xFFE8F5E9), // Hijau sangat muda
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: const Color(0xFF0F3460)),
+                border: Border.all(color: const Color(0xFF4CAF50)), // Hijau
               ),
               child: DropdownButtonHideUnderline(
                 child: DropdownButton<String?>(
@@ -289,14 +292,14 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
                     padding: EdgeInsets.symmetric(horizontal: 12),
                     child: Text(
                       'Semua Kota',
-                      style: TextStyle(color: Colors.white54),
+                      style: TextStyle(color: Colors.black54),
                     ),
                   ),
                   icon: const Padding(
                     padding: EdgeInsets.only(right: 12),
-                    child: Icon(Icons.arrow_drop_down, color: Colors.white70),
+                    child: Icon(Icons.arrow_drop_down, color: Colors.black54),
                   ),
-                  dropdownColor: const Color(0xFF16213E),
+                  dropdownColor: const Color(0xFF388E3C), // Hijau
                   items: [
                     // Item untuk "Semua Kota"
                     const DropdownMenuItem<String?>(
@@ -305,7 +308,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
                         padding: EdgeInsets.symmetric(horizontal: 12),
                         child: Text(
                           'Semua Kota',
-                          style: TextStyle(color: Colors.white54),
+                          style: TextStyle(color: Colors.black54),
                         ),
                       ),
                     ),
@@ -319,7 +322,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
                           padding: const EdgeInsets.symmetric(horizontal: 12),
                           child: Text(
                             kota,
-                            style: const TextStyle(color: Colors.white),
+                            style: const TextStyle(color: Colors.black),
                           ),
                         ),
                       );
@@ -357,7 +360,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
                       }
                     },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFE94560),
+                backgroundColor: const Color(0xFF4CAF50), // Hijau
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
@@ -403,7 +406,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
                     controller.resetFilter();
                   },
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF0F3460),
+              backgroundColor: const Color(0xFF81C784), // Hijau muda
               padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
@@ -422,7 +425,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
     if (controller.isLoading) {
       return const Center(
         child: CircularProgressIndicator(
-          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFE94560)),
+          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF4CAF50)), // Hijau
         ),
       );
     }
@@ -435,12 +438,12 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.location_off, size: 80, color: Colors.white30),
+              const Icon(Icons.location_off, size: 80, color: Colors.black26),
               const SizedBox(height: 16),
               Text(
                 controller.errorMessage!,
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: Colors.white70, fontSize: 16),
+                style: const TextStyle(color: Colors.black54, fontSize: 16),
               ),
             ],
           ),
@@ -456,12 +459,12 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.location_on, size: 80, color: Colors.white30),
+              Icon(Icons.location_on, size: 80, color: Colors.black26),
               SizedBox(height: 16),
               Text(
                 'Pilih lokasi dan tekan tombol "Cari Pengguna"\nuntuk menemukan pasangan di sekitar Anda',
                 textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.white70, fontSize: 16),
+                style: TextStyle(color: Colors.black54, fontSize: 16),
               ),
             ],
           ),
@@ -483,7 +486,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
   /// Widget untuk menampilkan card user
   Widget _buildUserCard(ChatUser user) {
     return Card(
-      color: const Color(0xFF16213E),
+      color: const Color(0xFF388E3C), // Hijau
       margin: const EdgeInsets.only(bottom: 12),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
@@ -493,7 +496,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
             // Foto profil
             CircleAvatar(
               radius: 30,
-              backgroundColor: const Color(0xFF0F3460),
+              backgroundColor: const Color(0xFF4CAF50), // Hijau
               backgroundImage:
                   user.imageUrl != null && user.imageUrl!.isNotEmpty
                   ? NetworkImage(user.imageUrl!)
@@ -533,7 +536,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
                       const Icon(
                         Icons.location_on,
                         size: 16,
-                        color: Color(0xFFE94560),
+                        color: Color(0xFF2E7D32), // Hijau gelap
                       ),
                       const SizedBox(width: 4),
                       Expanded(
@@ -560,7 +563,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
               },
               icon: const Icon(
                 Icons.arrow_forward_ios,
-                color: Color(0xFFE94560),
+                color: Color(0xFF2E7D32), // Hijau gelap
               ),
             ),
           ],
@@ -574,7 +577,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF16213E),
+        backgroundColor: const Color(0xFF388E3C), // Hijau
         title: Text(user.username, style: const TextStyle(color: Colors.white)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -610,7 +613,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
             onPressed: () => Navigator.pop(context),
             child: const Text(
               'Tutup',
-              style: TextStyle(color: Color(0xFFE94560)),
+              style: TextStyle(color: Color(0xFFFFFFFF)), // Putih
             ),
           ),
         ],
