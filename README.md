@@ -42,6 +42,25 @@ Minimnya sistem verifikasi dan penyaringan niat menyebabkan pengguna sering memb
 
 
 
+## Tampilan Profile
+<img width="738" height="1600" alt="image" src="https://github.com/user-attachments/assets/4fcd2ad8-359a-4d4b-9187-bb9313112f5a" />
+
+## Tampilan edit profie
+<img width="738" height="1600" alt="image" src="https://github.com/user-attachments/assets/caf2e348-b464-4523-9582-cc944da03cc2" />
+
+## Tampilan Pesan
+<img width="738" height="1600" alt="image" src="https://github.com/user-attachments/assets/1400c0a1-8226-4d7f-b23f-349ede4a15ff" />
+
+## Tampilan Filter Mendalam
+<img width="738" height="1600" alt="image" src="https://github.com/user-attachments/assets/0cfb41b5-5ae7-4f89-9457-20dbdbeffa01" />
+
+## Tampilan Cari penggunak Lokasi
+<img width="738" height="1600" alt="image" src="https://github.com/user-attachments/assets/38fc8d72-c568-4774-96b1-c18c6905aa17" />
+
+## Tampilan Matching
+<img width="738" height="1600" alt="image" src="https://github.com/user-attachments/assets/139a1feb-85f2-4847-a427-c7609b1bcdab" />
+
+
 
 
 
