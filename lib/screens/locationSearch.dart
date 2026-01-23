@@ -593,10 +593,11 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
                 ),
               ),
             const SizedBox(height: 16),
-            Text(
-              'Email: ${user.email}',
-              style: const TextStyle(color: Colors.white70),
-            ),
+            if (user.gender != null)
+              Text(
+                'Gender: ${user.gender}',
+                style: const TextStyle(color: Colors.white70),
+              ),
             const SizedBox(height: 8),
             Text(
               'Bio: ${user.bio ?? "Tidak ada bio"}',

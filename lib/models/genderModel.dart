@@ -1,4 +1,3 @@
-/// Enum untuk jenis kelamin dalam sistem matching
 enum Gender { lakiLaki, perempuan, semua }
 
 /// Model untuk preferensi filter gender
