@@ -20,7 +20,7 @@ class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
 
   final List<Widget> _widgetOptions = <Widget>[
-    MatchingScreen(), //tampilanmatching
+    const MatchingScreen(), //tampilanmatching
     const LocationSearchScreen(), // Pencarian berdasarkan lokasi
     const ChatListScreen(),
     const ProfilePage(),

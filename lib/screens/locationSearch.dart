@@ -450,15 +450,15 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
 
     // Kalau belum ada hasil pencarian
     if (controller.nearbyUsers.isEmpty) {
-      return Center(
+      return const Center(
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: EdgeInsets.all(24),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.location_on, size: 80, color: Colors.white30),
-              const SizedBox(height: 16),
-              const Text(
+              Icon(Icons.location_on, size: 80, color: Colors.white30),
+              SizedBox(height: 16),
+              Text(
                 'Pilih lokasi dan tekan tombol "Cari Pengguna"\nuntuk menemukan pasangan di sekitar Anda',
                 textAlign: TextAlign.center,
                 style: TextStyle(color: Colors.white70, fontSize: 16),

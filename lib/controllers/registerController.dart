@@ -55,7 +55,7 @@ class RegisterController extends ChangeNotifier {
     if (value == null || value.isEmpty) {
       return 'Email wajib diisi';
     }
-    if (!RegExp(r"^[^@\s]+@[^@\s]+\.[^@\s]+$").hasMatch(value)) {
+    if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(value)) {
       return 'Format email tidak valid';
     }
     return null;

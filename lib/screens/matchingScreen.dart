@@ -47,8 +47,8 @@ class _MatchingScreenState extends State<MatchingScreen>
           showDialog(
             context: context,
             builder: (context) => AlertDialog(
-              title: const Text("AYO CHATTING🎉"),
-              content: Text("Kamu cocok dengan ${matchedUser.username}?"),
+              title: const Text('AYO CHATTING🎉'),
+              content: Text('Kamu cocok dengan ${matchedUser.username}?'),
               actions: [
                 TextButton(
                   onPressed: () {

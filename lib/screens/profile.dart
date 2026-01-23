@@ -14,7 +14,7 @@ class ProfilePage extends StatelessWidget {
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
-      return const Center(child: Text("Pengguna tidak login."));
+      return const Center(child: Text('Pengguna tidak login.'));
     }
 
     return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(

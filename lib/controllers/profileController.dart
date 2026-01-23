@@ -197,8 +197,8 @@ class ProfileController extends ChangeNotifier {
         'dob': dobController.text,
         'gender': gender,
         'searchGender': searchGender,
-        'minAge': int.tryParse(minAgeController.text) ?? null,
-        'maxAge': int.tryParse(maxAgeController.text) ?? null,
+        'minAge': int.tryParse(minAgeController.text),
+        'maxAge': int.tryParse(maxAgeController.text),
         'agama': agama,
         'hobi': selectedHobi.isNotEmpty ? selectedHobi : null,
       };
