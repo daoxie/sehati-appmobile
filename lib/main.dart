@@ -7,6 +7,7 @@ import 'screens/login.dart';
 import 'screens/home.dart';
 import 'controllers/chatController.dart';
 import 'controllers/profileController.dart';
+import 'controllers/locationController.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -20,6 +21,7 @@ void main() async {
       providers: [
         ChangeNotifierProvider(create: (context) => ChatController()),
         ChangeNotifierProvider(create: (context) => ProfileController()),
+        ChangeNotifierProvider(create: (context) => LocationController()),
       ],
       child: const MyApp(),
     ),

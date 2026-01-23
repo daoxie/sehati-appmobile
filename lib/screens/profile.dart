@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'dart:convert';
 import 'editProfile.dart';
 import '/controllers/profileController.dart';
+import 'setLocation.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -104,10 +105,27 @@ class ProfilePage extends StatelessWidget {
                             context,
                             MaterialPageRoute(
                               builder: (_) => const EditProfilePage(),
-                            ),
+                            ),                
                           );
                         },
                         child: const Text('Edit Profile'),
+                      ),
+                      const SizedBox(height: 8),
+                      ElevatedButton.icon(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const SetLocationScreen(),
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.location_on),
+                        label: const Text('Atur Lokasi'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green,
+                          foregroundColor: Colors.white,
+                        ),
                       ),
                       const SizedBox(
                         height: 16,

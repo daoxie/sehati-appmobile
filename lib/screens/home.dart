@@ -7,6 +7,7 @@ import 'chatList.dart';
 import 'matchingScreen.dart';
 import '/controllers/matchingController.dart';
 import '/controllers/chatController.dart';
+import 'locationSearch.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -20,6 +21,7 @@ class _HomePageState extends State<HomePage> {
 
   final List<Widget> _widgetOptions = <Widget>[
     MatchingScreen(), //tampilanmatching
+    const LocationSearchScreen(), // Pencarian berdasarkan lokasi
     const ChatListScreen(),
     const ProfilePage(),
   ];
@@ -74,6 +76,10 @@ class _HomePageState extends State<HomePage> {
             BottomNavigationBarItem(
               icon: Icon(Icons.favorite),
               label: 'Matching',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.location_on),
+              label: 'Lokasi',
             ),
             BottomNavigationBarItem(icon: Icon(Icons.message), label: 'Pesan'),
             BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
