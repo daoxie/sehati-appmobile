@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '/models/chatModels.dart';
+import '/models/genderModel.dart';
 
 class MatchingController with ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -11,6 +12,7 @@ class MatchingController with ChangeNotifier {
   bool _isLoading = false;
   String? _errorMessage;
   List<ChatUser> _allAvailableProfiles = []; // Renamed from _allAvailableUsers
+  Gender _selectedGenderFilter = Gender.semua; // Filter gender aktif
 
   // New: Callback for when a match is found
   Function? onMatchFound;
@@ -21,6 +23,8 @@ class MatchingController with ChangeNotifier {
       _lastMatchedUser; // Getter for the last matched user
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
+  Gender get selectedGenderFilter =>
+      _selectedGenderFilter; // Getter untuk filter gender
 
   String? get currentUserId =>
       _currentUser?.uid; // New getter for current user's UID
@@ -48,6 +52,13 @@ class MatchingController with ChangeNotifier {
         notifyListeners();
       }
     });
+  }
+
+  /// Mengatur filter gender dan memuat ulang profil
+  Future<void> setGenderFilter(Gender gender) async {
+    if (_selectedGenderFilter == gender) return;
+    _selectedGenderFilter = gender;
+    await loadProfiles(); // Reload profil dengan filter baru
   }
 
   // Renamed _fetchUsersToMatch to loadProfiles
@@ -90,6 +101,19 @@ class MatchingController with ChangeNotifier {
       print(
         'All available users (excluding current user): ${_allAvailableProfiles.length}',
       );
+
+      // Filter berdasarkan gender jika ada filter aktif
+      final genderFilterString = GenderFilter.toFirebaseString(
+        _selectedGenderFilter,
+      );
+      if (genderFilterString != null) {
+        _allAvailableProfiles = _allAvailableProfiles
+            .where((user) => user.gender == genderFilterString)
+            .toList();
+        print(
+          'Filtered by gender ($genderFilterString): ${_allAvailableProfiles.length}',
+        );
+      }
 
       // Get already swiped users by current user (both liked and disliked)
       QuerySnapshot swipedUsersSnapshot = await _firestore
@@ -184,8 +208,7 @@ class MatchingController with ChangeNotifier {
         //menampilkan urutan acak
         print('Menampilkan semua pengguna dalam urutan acak');
         _profiles = List.from(_allAvailableProfiles);
-        _profiles
-            .shuffle(); //urutan acak
+        _profiles.shuffle(); //urutan acak
       } else if (_profiles.isEmpty) {
         _errorMessage = 'Tidak ada pengguna untuk dicocokkan.';
       }
@@ -201,7 +224,7 @@ class MatchingController with ChangeNotifier {
     if (_currentUser == null) return;
 
     String chatRoomId = _generateChatRoomId(_currentUser!.uid, matchedUser.uid);
-//match keuser kita
+    //match keuser kita
     await _firestore
         .collection('users')
         .doc(_currentUser!.uid)
@@ -235,7 +258,7 @@ class MatchingController with ChangeNotifier {
   }
 
   String _generateChatRoomId(String uid1, String uid2) {
- //id ruang obrolan
+    //id ruang obrolan
     return uid1.compareTo(uid2) < 0 ? '${uid1}_$uid2' : '${uid2}_$uid1';
   }
 

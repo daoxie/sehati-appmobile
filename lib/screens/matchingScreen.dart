@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '/controllers/matchingController.dart';
 import '/models/chatModels.dart';
+import '/models/genderModel.dart';
 import 'chatRoom.dart';
 
 class MatchingScreen extends StatefulWidget {
@@ -164,6 +165,22 @@ class _MatchingScreenState extends State<MatchingScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.green[50], // Background hijau muda
+      appBar: AppBar(
+        backgroundColor: Colors.green[700],
+        elevation: 0,
+        title: const Text(
+          'Matching',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        actions: [
+          // Gender Filter di header
+          Consumer<MatchingController>(
+            builder: (context, controller, _) {
+              return _buildGenderFilterDropdown(controller);
+            },
+          ),
+        ],
+      ),
       body: Consumer<MatchingController>(
         builder: (context, controller, child) {
           if (controller.isLoading) {
@@ -221,7 +238,6 @@ class _MatchingScreenState extends State<MatchingScreen>
                   ),
                 ),
 
-          
               Align(
                 alignment: _animationController.isAnimating
                     ? _animation.value
@@ -369,5 +385,49 @@ class _MatchingScreenState extends State<MatchingScreen>
         child: const Icon(Icons.broken_image, size: 50),
       );
     }
+  }
+
+  /// Widget dropdown untuk filter gender di AppBar
+  Widget _buildGenderFilterDropdown(MatchingController controller) {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.2),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<Gender>(
+          value: controller.selectedGenderFilter,
+          icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
+          dropdownColor: Colors.green[600],
+          style: const TextStyle(color: Colors.white, fontSize: 14),
+          items: GenderFilter.allOptions.map((gender) {
+            return DropdownMenuItem<Gender>(
+              value: gender,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    GenderFilter.getIcon(gender),
+                    style: const TextStyle(fontSize: 16),
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    GenderFilter.getDisplayName(gender),
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                ],
+              ),
+            );
+          }).toList(),
+          onChanged: (Gender? newValue) {
+            if (newValue != null) {
+              controller.setGenderFilter(newValue);
+            }
+          },
+        ),
+      ),
+    );
   }
 }
