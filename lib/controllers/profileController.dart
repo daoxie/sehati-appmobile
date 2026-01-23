@@ -26,6 +26,10 @@ class ProfileController extends ChangeNotifier {
   Uint8List? get pickedImageBytes => _pickedImageBytes;
   String? imageUrl;
 
+  // Field baru untuk Deep Matching
+  String? agama;
+  List<String> selectedHobi = [];
+
   int _likesGivenCount = 0;
   int get likesGivenCount => _likesGivenCount;
 
@@ -195,6 +199,8 @@ class ProfileController extends ChangeNotifier {
         'searchGender': searchGender,
         'minAge': int.tryParse(minAgeController.text) ?? null,
         'maxAge': int.tryParse(maxAgeController.text) ?? null,
+        'agama': agama,
+        'hobi': selectedHobi.isNotEmpty ? selectedHobi : null,
       };
 
       if (imageBase64 != null) {
@@ -239,6 +245,13 @@ class ProfileController extends ChangeNotifier {
         minAgeController.text = (data['minAge'] ?? '').toString();
         maxAgeController.text = (data['maxAge'] ?? '').toString();
         imageUrl = data['imageUrl'];
+        // Load deep matching fields
+        agama = data['agama'];
+        if (data['hobi'] != null) {
+          selectedHobi = List<String>.from(data['hobi']);
+        } else {
+          selectedHobi = [];
+        }
         errorMessage = null;
         _startListeningToLikeCounts(
           uid,
@@ -308,6 +321,24 @@ class ProfileController extends ChangeNotifier {
     selectedDate = null;
     _pickedImageBytes = null;
     imageUrl = null;
+    agama = null;
+    selectedHobi = [];
+  }
+
+  /// Toggle hobi selection
+  void toggleHobi(String hobi) {
+    if (selectedHobi.contains(hobi)) {
+      selectedHobi.remove(hobi);
+    } else {
+      selectedHobi.add(hobi);
+    }
+    notifyListeners();
+  }
+
+  /// Set agama
+  void setAgama(String? value) {
+    agama = value;
+    notifyListeners();
   }
 
   @override

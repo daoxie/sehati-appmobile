@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '/models/chatModels.dart';
 import '/models/genderModel.dart';
+import '/models/deepMatchingModel.dart';
 
 class MatchingController with ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -13,6 +14,8 @@ class MatchingController with ChangeNotifier {
   String? _errorMessage;
   List<ChatUser> _allAvailableProfiles = []; // Renamed from _allAvailableUsers
   Gender _selectedGenderFilter = Gender.semua; // Filter gender aktif
+  DeepMatchingFilter _deepFilter = const DeepMatchingFilter(); // Deep filter
+  bool _isDeepFilterEnabled = false; // Status deep filter
 
   // New: Callback for when a match is found
   Function? onMatchFound;
@@ -25,6 +28,8 @@ class MatchingController with ChangeNotifier {
   String? get errorMessage => _errorMessage;
   Gender get selectedGenderFilter =>
       _selectedGenderFilter; // Getter untuk filter gender
+  DeepMatchingFilter get deepFilter => _deepFilter; // Getter untuk deep filter
+  bool get isDeepFilterEnabled => _isDeepFilterEnabled; // Status deep filter
 
   String? get currentUserId =>
       _currentUser?.uid; // New getter for current user's UID
@@ -59,6 +64,20 @@ class MatchingController with ChangeNotifier {
     if (_selectedGenderFilter == gender) return;
     _selectedGenderFilter = gender;
     await loadProfiles(); // Reload profil dengan filter baru
+  }
+
+  /// Mengatur deep filter dan memuat ulang profil
+  Future<void> setDeepFilter(DeepMatchingFilter filter) async {
+    _deepFilter = filter;
+    _isDeepFilterEnabled = filter.isNotEmpty;
+    await loadProfiles();
+  }
+
+  /// Reset deep filter
+  Future<void> clearDeepFilter() async {
+    _deepFilter = const DeepMatchingFilter();
+    _isDeepFilterEnabled = false;
+    await loadProfiles();
   }
 
   // Renamed _fetchUsersToMatch to loadProfiles
@@ -112,6 +131,45 @@ class MatchingController with ChangeNotifier {
             .toList();
         print(
           'Filtered by gender ($genderFilterString): ${_allAvailableProfiles.length}',
+        );
+      }
+
+      // Deep Filter: Filter berdasarkan agama
+      if (_deepFilter.filterAgama != null) {
+        _allAvailableProfiles = _allAvailableProfiles
+            .where((user) => user.agama == _deepFilter.filterAgama)
+            .toList();
+        print(
+          'Filtered by agama (${_deepFilter.filterAgama}): ${_allAvailableProfiles.length}',
+        );
+      }
+
+      // Deep Filter: Filter berdasarkan hobi (minimal 1 hobi yang sama)
+      if (_deepFilter.filterHobi.isNotEmpty) {
+        _allAvailableProfiles = _allAvailableProfiles.where((user) {
+          if (user.hobi == null || user.hobi!.isEmpty) return false;
+          // Cek apakah ada hobi yang sama
+          return user.hobi!.any((h) => _deepFilter.filterHobi.contains(h));
+        }).toList();
+        print('Filtered by hobi: ${_allAvailableProfiles.length}');
+      }
+
+      // Deep Filter: Filter berdasarkan range umur
+      if (_deepFilter.minUmur != null || _deepFilter.maxUmur != null) {
+        _allAvailableProfiles = _allAvailableProfiles.where((user) {
+          final userUmur = user.umur;
+          if (userUmur == null) return false;
+
+          if (_deepFilter.minUmur != null && userUmur < _deepFilter.minUmur!) {
+            return false;
+          }
+          if (_deepFilter.maxUmur != null && userUmur > _deepFilter.maxUmur!) {
+            return false;
+          }
+          return true;
+        }).toList();
+        print(
+          'Filtered by umur (${_deepFilter.minUmur}-${_deepFilter.maxUmur}): ${_allAvailableProfiles.length}',
         );
       }
 

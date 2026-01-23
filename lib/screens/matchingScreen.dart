@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '/controllers/matchingController.dart';
 import '/models/chatModels.dart';
 import '/models/genderModel.dart';
+import '/models/deepMatchingModel.dart';
 import 'chatRoom.dart';
 
 class MatchingScreen extends StatefulWidget {
@@ -173,6 +174,34 @@ class _MatchingScreenState extends State<MatchingScreen>
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         actions: [
+          // Deep Filter Icon
+          Consumer<MatchingController>(
+            builder: (context, controller, _) {
+              return Stack(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.tune, color: Colors.white),
+                    tooltip: 'Filter Mendalam',
+                    onPressed: () => _showDeepFilterDialog(context, controller),
+                  ),
+                  // Indicator jika filter aktif
+                  if (controller.isDeepFilterEnabled)
+                    Positioned(
+                      right: 8,
+                      top: 8,
+                      child: Container(
+                        width: 10,
+                        height: 10,
+                        decoration: const BoxDecoration(
+                          color: Colors.orange,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    ),
+                ],
+              );
+            },
+          ),
           // Gender Filter di header
           Consumer<MatchingController>(
             builder: (context, controller, _) {
@@ -428,6 +457,268 @@ class _MatchingScreenState extends State<MatchingScreen>
           },
         ),
       ),
+    );
+  }
+
+  /// Dialog untuk filter mendalam (agama, hobi, umur)
+  void _showDeepFilterDialog(
+    BuildContext context,
+    MatchingController controller,
+  ) {
+    // State lokal untuk dialog
+    String? selectedAgama = controller.deepFilter.filterAgama;
+    List<String> selectedHobi = List.from(controller.deepFilter.filterHobi);
+    RangeValues umurRange = RangeValues(
+      (controller.deepFilter.minUmur ?? 18).toDouble(),
+      (controller.deepFilter.maxUmur ?? 50).toDouble(),
+    );
+    bool useUmurFilter =
+        controller.deepFilter.minUmur != null ||
+        controller.deepFilter.maxUmur != null;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return Container(
+              height: MediaQuery.of(context).size.height * 0.75,
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+              ),
+              child: Column(
+                children: [
+                  // Header
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.green[700],
+                      borderRadius: const BorderRadius.vertical(
+                        top: Radius.circular(20),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Filter Mendalam',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            setDialogState(() {
+                              selectedAgama = null;
+                              selectedHobi = [];
+                              useUmurFilter = false;
+                              umurRange = const RangeValues(18, 50);
+                            });
+                          },
+                          child: const Text(
+                            'Reset',
+                            style: TextStyle(color: Colors.white70),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // Content
+                  Expanded(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Agama Filter
+                          const Text(
+                            '🙏 Agama',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          DropdownButtonFormField<String>(
+                            value: selectedAgama,
+                            decoration: InputDecoration(
+                              hintText: 'Semua Agama',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 8,
+                              ),
+                            ),
+                            items: [
+                              const DropdownMenuItem<String>(
+                                value: null,
+                                child: Text('Semua Agama'),
+                              ),
+                              ...AgamaHelper.daftarAgama.map((agama) {
+                                return DropdownMenuItem<String>(
+                                  value: agama,
+                                  child: Text(agama),
+                                );
+                              }),
+                            ],
+                            onChanged: (value) {
+                              setDialogState(() {
+                                selectedAgama = value;
+                              });
+                            },
+                          ),
+
+                          const SizedBox(height: 24),
+
+                          // Hobi Filter
+                          const Text(
+                            '🎯 Hobi (Pilih yang ingin dicari)',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: HobiHelper.daftarHobi.map((hobi) {
+                              final isSelected = selectedHobi.contains(hobi);
+                              return FilterChip(
+                                label: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(HobiHelper.getIcon(hobi)),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      hobi,
+                                      style: const TextStyle(fontSize: 12),
+                                    ),
+                                  ],
+                                ),
+                                selected: isSelected,
+                                onSelected: (_) {
+                                  setDialogState(() {
+                                    if (isSelected) {
+                                      selectedHobi.remove(hobi);
+                                    } else {
+                                      selectedHobi.add(hobi);
+                                    }
+                                  });
+                                },
+                                selectedColor: Colors.green.shade100,
+                                checkmarkColor: Colors.green,
+                              );
+                            }).toList(),
+                          ),
+
+                          const SizedBox(height: 24),
+
+                          // Umur Filter
+                          Row(
+                            children: [
+                              const Text(
+                                '🎂 Range Umur',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const Spacer(),
+                              Switch(
+                                value: useUmurFilter,
+                                onChanged: (value) {
+                                  setDialogState(() {
+                                    useUmurFilter = value;
+                                  });
+                                },
+                                activeColor: Colors.green,
+                              ),
+                            ],
+                          ),
+                          if (useUmurFilter) ...[
+                            Text(
+                              '${umurRange.start.toInt()} - ${umurRange.end.toInt()} tahun',
+                              style: TextStyle(
+                                color: Colors.green[700],
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            RangeSlider(
+                              values: umurRange,
+                              min: 18,
+                              max: 60,
+                              divisions: 42,
+                              activeColor: Colors.green,
+                              labels: RangeLabels(
+                                '${umurRange.start.toInt()}',
+                                '${umurRange.end.toInt()}',
+                              ),
+                              onChanged: (values) {
+                                setDialogState(() {
+                                  umurRange = values;
+                                });
+                              },
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  // Apply Button
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          // Apply filter
+                          final filter = DeepMatchingFilter(
+                            filterAgama: selectedAgama,
+                            filterHobi: selectedHobi,
+                            minUmur: useUmurFilter
+                                ? umurRange.start.toInt()
+                                : null,
+                            maxUmur: useUmurFilter
+                                ? umurRange.end.toInt()
+                                : null,
+                          );
+                          controller.setDeepFilter(filter);
+                          Navigator.pop(context);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green[700],
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: const Text(
+                          'Terapkan Filter',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }

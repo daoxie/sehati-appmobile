@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '/controllers/profileController.dart';
+import '/models/deepMatchingModel.dart';
 
 class EditProfilePage extends StatefulWidget {
   const EditProfilePage({super.key});
@@ -96,9 +97,7 @@ class EditProfilePageState extends State<EditProfilePage> {
     return Consumer<ProfileController>(
       builder: (context, controller, child) {
         return Scaffold(
-          appBar: AppBar(
-            title: const Text('Edit Profile'),
-          ),
+          appBar: AppBar(title: const Text('Edit Profile')),
           body: SingleChildScrollView(
             padding: const EdgeInsets.all(16.0),
             child: Form(
@@ -113,9 +112,13 @@ class EditProfilePageState extends State<EditProfilePage> {
                           radius: 60,
                           backgroundImage: controller.pickedImageBytes != null
                               ? MemoryImage(controller.pickedImageBytes!)
-                              : (controller.imageUrl != null && controller.imageUrl!.isNotEmpty)
-                                  ? MemoryImage(base64Decode(controller.imageUrl!))
-                                  : const NetworkImage('https://www.gravatar.com/avatar/?d=mp') as ImageProvider,
+                              : (controller.imageUrl != null &&
+                                    controller.imageUrl!.isNotEmpty)
+                              ? MemoryImage(base64Decode(controller.imageUrl!))
+                              : const NetworkImage(
+                                      'https://www.gravatar.com/avatar/?d=mp',
+                                    )
+                                    as ImageProvider,
                         ),
                         const SizedBox(height: 12),
                         TextButton.icon(
@@ -134,7 +137,8 @@ class EditProfilePageState extends State<EditProfilePage> {
                       labelText: 'NIK',
                       prefixIcon: const Icon(Icons.credit_card),
                       border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8)),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                       filled: true,
                       fillColor: Colors.white,
                     ),
@@ -147,7 +151,8 @@ class EditProfilePageState extends State<EditProfilePage> {
                       labelText: 'Nama',
                       prefixIcon: const Icon(Icons.person),
                       border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8)),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                       filled: true,
                       fillColor: Colors.white,
                     ),
@@ -160,14 +165,19 @@ class EditProfilePageState extends State<EditProfilePage> {
                       labelText: 'Jenis Kelamin',
                       prefixIcon: const Icon(Icons.wc),
                       border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8)),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                       filled: true,
                       fillColor: Colors.white,
                     ),
                     hint: const Text('Pilih Jenis Kelamin'),
                     items: const ['Laki-laki', 'Perempuan']
-                        .map((value) =>
-                            DropdownMenuItem(value: value, child: Text(value)))
+                        .map(
+                          (value) => DropdownMenuItem(
+                            value: value,
+                            child: Text(value),
+                          ),
+                        )
                         .toList(),
                     onChanged: (value) {
                       controller.gender = value;
@@ -183,7 +193,8 @@ class EditProfilePageState extends State<EditProfilePage> {
                       labelText: 'Tanggal Lahir',
                       prefixIcon: const Icon(Icons.calendar_today),
                       border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8)),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                       filled: true,
                       fillColor: Colors.white,
                     ),
@@ -197,12 +208,94 @@ class EditProfilePageState extends State<EditProfilePage> {
                       labelText: 'Alamat',
                       prefixIcon: const Icon(Icons.home),
                       border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8)),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                       filled: true,
                       fillColor: Colors.white,
                     ),
                     validator: controller.validateAddress,
                   ),
+                  const SizedBox(height: 16),
+
+                  // === FIELD BARU: AGAMA ===
+                  DropdownButtonFormField<String>(
+                    value: controller.agama,
+                    decoration: InputDecoration(
+                      labelText: 'Agama',
+                      prefixIcon: const Icon(Icons.self_improvement),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      filled: true,
+                      fillColor: Colors.white,
+                    ),
+                    hint: const Text('Pilih Agama'),
+                    items: AgamaHelper.daftarAgama
+                        .map(
+                          (value) => DropdownMenuItem(
+                            value: value,
+                            child: Text(value),
+                          ),
+                        )
+                        .toList(),
+                    onChanged: (value) {
+                      controller.setAgama(value);
+                    },
+                  ),
+                  const SizedBox(height: 16),
+
+                  // === FIELD BARU: HOBI ===
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.grey.shade400),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(Icons.interests, color: Colors.grey.shade600),
+                            const SizedBox(width: 12),
+                            const Text(
+                              'Hobi (Pilih beberapa)',
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Colors.black54,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: HobiHelper.daftarHobi.map((hobi) {
+                            final isSelected = controller.selectedHobi.contains(
+                              hobi,
+                            );
+                            return FilterChip(
+                              label: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(HobiHelper.getIcon(hobi)),
+                                  const SizedBox(width: 4),
+                                  Text(hobi),
+                                ],
+                              ),
+                              selected: isSelected,
+                              onSelected: (_) => controller.toggleHobi(hobi),
+                              selectedColor: Colors.green.shade100,
+                              checkmarkColor: Colors.green,
+                            );
+                          }).toList(),
+                        ),
+                      ],
+                    ),
+                  ),
+
                   const SizedBox(height: 24),
                   ElevatedButton(
                     onPressed: controller.isLoading

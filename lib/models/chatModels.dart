@@ -6,6 +6,8 @@ class ChatUser {
   final String? gender;
   final String? dob;
   final String? bio;
+  final String? agama;
+  final List<String>? hobi;
 
   ChatUser({
     required this.uid,
@@ -14,12 +16,20 @@ class ChatUser {
     this.gender,
     this.dob,
     this.bio,
+    this.agama,
+    this.hobi,
   });
 
   factory ChatUser.fromMap(
     Map<String, dynamic> data, {
     required String documentId,
   }) {
+    // Parse hobi dari Firebase (bisa berupa List atau null)
+    List<String>? hobiList;
+    if (data['hobi'] != null) {
+      hobiList = List<String>.from(data['hobi']);
+    }
+
     return ChatUser(
       uid: documentId,
       username: data['name'] ?? 'No Name',
@@ -27,6 +37,8 @@ class ChatUser {
       gender: data['gender'],
       dob: data['dob'],
       bio: data['bio'],
+      agama: data['agama'],
+      hobi: hobiList,
     );
   }
 
@@ -38,7 +50,53 @@ class ChatUser {
       'gender': gender,
       'dob': dob,
       'bio': bio,
+      'agama': agama,
+      'hobi': hobi,
     };
+  }
+
+  /// Menghitung umur dari tanggal lahir
+  int? get umur {
+    if (dob == null || dob!.isEmpty) return null;
+
+    try {
+      final parts = dob!.split(' ');
+      if (parts.length != 3) return null;
+
+      final day = int.parse(parts[0]);
+      final year = int.parse(parts[2]);
+
+      const bulanMap = {
+        'Januari': 1,
+        'Februari': 2,
+        'Maret': 3,
+        'April': 4,
+        'Mei': 5,
+        'Juni': 6,
+        'Juli': 7,
+        'Agustus': 8,
+        'September': 9,
+        'Oktober': 10,
+        'November': 11,
+        'Desember': 12,
+      };
+
+      final month = bulanMap[parts[1]];
+      if (month == null) return null;
+
+      final birthDate = DateTime(year, month, day);
+      final now = DateTime.now();
+      int age = now.year - birthDate.year;
+
+      if (now.month < birthDate.month ||
+          (now.month == birthDate.month && now.day < birthDate.day)) {
+        age--;
+      }
+
+      return age;
+    } catch (e) {
+      return null;
+    }
   }
 }
 
